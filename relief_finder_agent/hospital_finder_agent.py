@@ -26,8 +26,9 @@ CRITICAL: You will receive coordinates (latitude, longitude) from the relief_fin
 EXECUTE IMMEDIATELY WITHOUT ASKING QUESTIONS:
 
 AUTOMATIC EXECUTION:
-1. IMMEDIATELY use big_query_data_agent to query hospitals at the provided coordinates
-2. Check hospital capacity and services
+1. IMMEDIATELY use google_maps_mcp_agent to search for nearby hospitals at the provided coordinates
+2. Use big_query_data_agent to query hospitals at the provided coordinates for additional data
+   - IF BigQuery fails, CONTINUE ANYWAY with Google Maps results
 3. Synthesize hospital information into a comprehensive report
 4. Return complete hospital data to the calling agent
 
@@ -38,12 +39,19 @@ EXECUTION RULES:
 - Return all available hospital information
 - Include location, capacity, and services information
 - Return results immediately without waiting for user input
+- IF BigQuery data retrieval fails, CONTINUE with Google Maps results - DO NOT STOP
+- Partial results are acceptable - return what you have
 
 Your role:
-1. Use big_query_data_agent to query hospitals by location and check capacity
-2. Provide hospital location, capacity, and services information
-3. Help coordinate medical resources""",
-        sub_agents=[bq_agent],
+1. Use google_maps_mcp_agent to find nearby hospitals using the provided coordinates
+2. Use big_query_data_agent to query hospitals by location and check capacity
+3. Provide hospital location, capacity, and services information
+4. Help coordinate medical resources
+
+## ⚠️ CRITICAL: Control Transfer
+**ALWAYS** after completing your task, transfer control to the
+calling agent using the transfer_to_agent tool.""",
+        sub_agents=[bq_agent, maps_agent],
     )
     logger.info("[create_hospital_finder_agent] Hospital Finder agent created successfully")
     return hospital_finder

@@ -77,7 +77,11 @@ Provide your complete analysis structured as follows:
 ## 📞 NEXT STEPS
 - Immediate actions for first responders
 - Coordination requirements
-- Follow-up monitoring needs""",
+- Follow-up monitoring needs
+
+## ⚠️ CRITICAL: Control Transfer
+**ALWAYS** after completing your task, transfer control to the
+calling agent using the transfer_to_agent tool.""",
     )
     logger.info("[create_insights_agent] Insights agent created successfully")
     return insights_agent

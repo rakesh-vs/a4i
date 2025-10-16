@@ -171,7 +171,7 @@ def create_noaa_live_agent():
         description="Sub-agent for querying live NOAA weather and disaster data",
         instruction="""You are a sub-agent that queries live NOAA weather and disaster data from the NOAA API.
 
-CRITICAL: Execute queries IMMEDIATELY without asking for clarification. Return results and let the calling agent continue.
+CRITICAL: Execute queries IMMEDIATELY without asking for clarification. Return results and let the calling agent continue. THEN COMPLETE YOUR TASK.
 
 You have access to tools to:
     - Query active weather alerts by state
@@ -186,8 +186,19 @@ EXECUTION RULES:
 - Return results in clear, structured format
 - Do NOT wait for user input
 - Return results so the calling agent can continue to the next step
+- AFTER RETURNING RESULTS, YOUR TASK IS COMPLETE - let the calling agent continue
 
-Use these tools to retrieve current NOAA weather and alert data. Return clear, structured results.""",
+TASK COMPLETION:
+1. Call the appropriate tool with the provided location/coordinates
+2. Receive the results (even if empty)
+3. Return the results to the calling agent
+4. Your task is now complete - do not ask for more input or clarification
+
+Use these tools to retrieve current NOAA weather and alert data. Return clear, structured results. Then your task is complete.
+
+## ⚠️ CRITICAL: Control Transfer
+**ALWAYS** after completing your task, transfer control to the
+calling agent using the transfer_to_agent tool.""",
         tools=[
             query_active_alerts,
             query_weather_alerts_by_type,

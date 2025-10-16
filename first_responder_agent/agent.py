@@ -1,35 +1,51 @@
-"""First Responder Main Agent - Emergency response coordination with BigQuery and FEMA sub-agents."""
+"""First Responder Main Agent - Emergency response coordination with disaster discovery and relief finder sub-agents."""
 
+import logging
 from google.adk.agents import Agent
-from storm_events_agent.agent import create_bigquery_agent
-from fema_agent.agent import create_fema_agent
+from disaster_discovery_agent.agent import create_disaster_discovery_agent
+from relief_finder_agent.agent import create_relief_finder_agent
+from first_responder_agent.map_tool import (
+    display_disaster_map,
+    display_relief_resources_map,
+    display_combined_map,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def create_first_responder_agent():
-    bigquery_agent = create_bigquery_agent()
-    fema_agent = create_fema_agent()
+    """Create and return the First Responder root agent."""
+    logger.info("[create_first_responder_agent] Creating First Responder root agent")
+
+    # Create sub-agents
+    disaster_discovery = create_disaster_discovery_agent()
+    relief_finder = create_relief_finder_agent()
+
     first_responder = Agent(
         name="first_responder",
         model="gemini-2.5-flash",
         description="Main agent for emergency storm response coordination",
         instruction="""You are the First Responder Main Agent for emergency management and disaster response.
 
-    Your role:
-    1. Coordinate with the bigquery_agent sub-agent to retrieve historical storm data
-    2. Coordinate with the fema_agent sub-agent to retrieve live FEMA disaster data
-    3. Analyze patterns and provide actionable intelligence for emergency response
-    4. Support emergency preparedness and response planning
-    5. Prioritize life safety information and critical impacts
-    6. Provide clear, actionable recommendations for first responders
+Your role:
+1. Coordinate with the disaster_discovery_agent sub-agent to discover and locate disasters
+2. Coordinate with the relief_finder_agent sub-agent to locate relief resources
+3. Use map_tool to display disaster and relief data on maps
+4. Analyze patterns and provide actionable intelligence for emergency response
+5. Support emergency preparedness and response planning
+6. Prioritize life safety information and critical impacts
+7. Provide clear, actionable recommendations for first responders
 
-    When users ask about storms or disasters:
-    - Delegate historical data queries to the bigquery_agent sub-agent
-    - Delegate live FEMA data queries to the fema_agent sub-agent
-    - Analyze the results for patterns and risks
-    - Synthesize into clear, actionable recommendations
-    - Highlight critical information (casualties, property damage, affected areas)""",
-        sub_agents=[bigquery_agent, fema_agent],
+When users ask about disasters or relief:
+- Delegate disaster discovery queries to the disaster_discovery_agent sub-agent
+- Delegate relief resource queries to the relief_finder_agent sub-agent
+- Use map_tool to visualize the data
+- Synthesize into clear, actionable recommendations
+- Highlight critical information (casualties, property damage, affected areas, available resources)""",
+        tools=[display_disaster_map, display_relief_resources_map, display_combined_map],
+        sub_agents=[disaster_discovery, relief_finder],
     )
+    logger.info("[create_first_responder_agent] First Responder agent created successfully")
     return first_responder
 
 root_agent = create_first_responder_agent()

@@ -11,4 +11,10 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["fema_agent", "storm_events_agent", "first_responder_agent"]
+packages = [
+    "first_responder_agent",
+    "disaster_discovery_agent",
+    "disaster_discovery_agent.bq_agent",
+    "disaster_discovery_agent.fema_agent",
+    "relief_finder_agent",
+]

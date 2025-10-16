@@ -4,7 +4,7 @@ This document describes the refactored agent architecture following the plan in 
 
 ## Overview
 
-The project has been rearchitected to use common shared modules that can be reused across multiple agents, reducing code duplication and improving maintainability.
+The project has been rearchitected to use common shared modules that can be reused across multiple agents, reducing code duplication and improving maintainability. The system now includes an Insights Agent that synthesizes disaster and relief data into comprehensive analysis and actionable plans.
 
 ## Architecture Structure
 
@@ -14,13 +14,15 @@ first_responder_agent (root)
 │   ├── big_query_data_agent (common)
 │   ├── fema_agent
 │   └── noaa_agent
-└── relief_finder_agent
-    ├── shelter_finder_agent
-    │   └── big_query_data_agent (common)
-    ├── hospital_finder_agent
-    │   └── big_query_data_agent (common)
-    └── supply_finder_agent
-        └── big_query_data_agent (common)
+├── relief_finder_agent
+│   ├── shelter_finder_agent
+│   │   └── big_query_data_agent (common)
+│   ├── hospital_finder_agent
+│   │   └── big_query_data_agent (common)
+│   └── supply_finder_agent
+│       └── big_query_data_agent (common)
+└── insights_agent (NEW)
+    └── Synthesizes disaster and relief data into comprehensive analysis
 ```
 
 ## Common Shared Modules
@@ -47,26 +49,29 @@ A unified BigQuery agent used across multiple agents for querying disaster and r
   - `query_supplies_by_location()` - Find supplies in a location
   - `check_supply_inventory()` - Check supply inventory
 
-### 2. `common/map_tool.py`
-A unified map tool used across multiple agents for displaying and finding resources.
+### 2. `common/google_maps_mcp_agent.py`
+A Google Maps MCP (Model Context Protocol) agent that provides all map functionality through the Google Maps API.
 
 **Capabilities:**
-- **Nearby Location Finders:**
-  - `find_nearby_shelters()` - Find shelters within radius
-  - `find_nearby_hospitals()` - Find hospitals within radius
-  - `find_nearby_supplies()` - Find supplies within radius
+- **Location Search:**
+  - Find nearby places (shelters, hospitals, supplies, etc.)
+  - Search for specific locations
+  - Get location details and information
 
-- **Map Display Functions:**
-  - `display_disaster_map()` - Display disasters on map
-  - `display_relief_resources_map()` - Display relief resources on map
-  - `display_combined_map()` - Display disasters and resources together
+- **Map Operations:**
+  - Display maps with custom markers and overlays
+  - Calculate distances and routes between locations
+  - Geocode addresses to coordinates and vice versa
+  - Provide location-based information
+
+**Note:** The old `common/map_tool.py` and `first_responder_agent/map_tool.py` are deprecated. All map functionality is now handled by the Google Maps MCP Agent.
 
 ## Agent Hierarchy
 
 ### First Responder Agent (Root)
 - **Role:** Main emergency response coordination agent
-- **Sub-agents:** disaster_discovery_agent, relief_finder_agent
-- **Tools:** Common map tools (display_disaster_map, display_relief_resources_map, display_combined_map)
+- **Sub-agents:** disaster_discovery_agent, relief_finder_agent, insights_agent, google_maps_mcp_agent
+- **Tools:** Google Maps MCP (location search, map display, geocoding, distance calculation)
 
 ### Disaster Discovery Agent
 - **Role:** Discovers and locates disasters
@@ -104,6 +109,21 @@ A unified map tool used across multiple agents for displaying and finding resour
 - **Sub-agents:** big_query_data_agent (common)
 - **Tools:** find_nearby_supplies, display_relief_resources_map
 
+### Insights Agent (NEW)
+- **Role:** Synthesizes disaster and relief data into comprehensive analysis and actionable plans
+- **Responsibilities:**
+  - Analyzes disaster information and severity
+  - Analyzes available relief resources
+  - Creates detailed extraction and relief plans with phases
+  - Identifies critical gaps and vulnerabilities
+  - Provides key insights and recommendations
+- **Output:** Comprehensive emergency brief with:
+  - Disaster analysis and severity assessment
+  - Critical insights and urgent areas
+  - Phased extraction and relief plan (immediate, short-term, medium-term)
+  - Resource deployment strategy
+  - Key recommendations and next steps
+
 ## Key Improvements
 
 1. **Code Reusability:** Common modules are shared across multiple agents, reducing duplication
@@ -120,11 +140,12 @@ a4i/
 ├── common/
 │   ├── __init__.py
 │   ├── big_query_data_agent.py
-│   └── map_tool.py
+│   ├── google_maps_mcp_agent.py
+│   └── map_tool.py (deprecated - use google_maps_mcp_agent.py)
 ├── first_responder_agent/
 │   ├── __init__.py
 │   ├── agent.py
-│   └── map_tool.py (deprecated - use common/map_tool.py)
+│   └── map_tool.py (deprecated - use common/google_maps_mcp_agent.py)
 ├── disaster_discovery_agent/
 │   ├── __init__.py
 │   ├── agent.py
@@ -133,7 +154,7 @@ a4i/
 │   ├── fema_agent/
 │   │   ├── __init__.py
 │   │   └── agent.py
-│   └── noaa_agent/ (NEW)
+│   └── noaa_agent/
 │       ├── __init__.py
 │       └── agent.py
 ├── relief_finder_agent/
@@ -142,6 +163,9 @@ a4i/
 │   ├── shelter_finder_agent.py
 │   ├── hospital_finder_agent.py
 │   └── supply_finder_agent.py
+├── insights_agent/
+│   ├── __init__.py
+│   └── agent.py
 └── plan.md
 ```
 

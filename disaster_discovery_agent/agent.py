@@ -1,10 +1,10 @@
-"""Disaster Discovery Agent - Discovers and locates disasters using BigQuery, FEMA, and NOAA data."""
+"""Disaster Discovery Agent - Discovers and locates disasters using BigQuery, FEMA Live, and NOAA Live data."""
 
 import logging
 from google.adk.agents import Agent
 from common.big_query_data_agent import create_big_query_data_agent
-from disaster_discovery_agent.fema_agent.agent import create_fema_agent
-from disaster_discovery_agent.noaa_agent.agent import create_noaa_agent
+from disaster_discovery_agent.fema_live_agent.agent import create_fema_live_agent
+from disaster_discovery_agent.noaa_live_agent.agent import create_noaa_live_agent
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,8 @@ def create_disaster_discovery_agent():
 
     # Create sub-agents
     bq_agent = create_big_query_data_agent()
-    fema_agent = create_fema_agent()
-    noaa_agent = create_noaa_agent()
+    fema_live_agent = create_fema_live_agent()
+    noaa_live_agent = create_noaa_live_agent()
 
     disaster_discovery = Agent(
         name="disaster_discovery_agent",
@@ -26,17 +26,17 @@ def create_disaster_discovery_agent():
 
 Your role:
 1. Query historical storm data from the big_query_data_agent sub-agent
-2. Query live FEMA disaster data from the fema_agent sub-agent
-3. Query live NOAA weather alerts and data from the noaa_agent sub-agent
+2. Query live FEMA disaster data from the fema_live_agent sub-agent
+3. Query live NOAA weather alerts and data from the noaa_live_agent sub-agent
 4. Identify affected areas and disaster hotspots
 5. Provide comprehensive disaster discovery information
 
 When users ask about disasters:
 - Delegate historical data queries to big_query_data_agent
-- Delegate live FEMA data queries to fema_agent
-- Delegate live NOAA weather data queries to noaa_agent
+- Delegate live FEMA data queries to fema_live_agent
+- Delegate live NOAA weather data queries to noaa_live_agent
 - Synthesize disaster data into actionable intelligence""",
-        sub_agents=[bq_agent, fema_agent, noaa_agent],
+        sub_agents=[bq_agent, fema_live_agent, noaa_live_agent],
     )
     logger.info("[create_disaster_discovery_agent] Disaster Discovery agent created successfully")
     return disaster_discovery

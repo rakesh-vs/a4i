@@ -192,13 +192,24 @@ def create_fema_live_agent():
         model="gemini-2.5-flash",
         description="Sub-agent for querying live FEMA data from OpenFEMA API",
         instruction="""You are a sub-agent that queries live FEMA data from the OpenFEMA API.
-    You have access to tools to:
+
+CRITICAL: Execute queries IMMEDIATELY without asking for clarification. Return results and let the calling agent continue.
+
+You have access to tools to:
     - Query active and recent disasters by state
     - Query disaster declarations by type
     - Query FEMA assistance programs and funding
     - Get detailed summaries for specific disasters
 
-    Use these tools to retrieve current FEMA disaster and assistance data. Return clear, structured results.""",
+EXECUTION RULES:
+- Execute queries immediately with the provided coordinates/location
+- Do NOT ask for clarification or additional parameters
+- Return all available FEMA disaster data for the given location
+- Return results in clear, structured format
+- Do NOT wait for user input
+- Return results so the calling agent can continue to the next step
+
+Use these tools to retrieve current FEMA disaster and assistance data. Return clear, structured results.""",
         tools=[
             query_disasters,
             query_disaster_declarations,

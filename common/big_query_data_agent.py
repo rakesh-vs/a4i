@@ -11,10 +11,15 @@ logger = logging.getLogger(__name__)
 
 def _get_bigquery_client():
     """Get BigQuery client."""
+    logger.debug("[_get_bigquery_client] Attempting to get BigQuery client")
     project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
     if not project_id:
+        logger.error("[_get_bigquery_client] GOOGLE_CLOUD_PROJECT environment variable not set")
         raise ValueError("GOOGLE_CLOUD_PROJECT environment variable not set")
-    return bigquery.Client(project=project_id)
+    logger.debug(f"[_get_bigquery_client] Creating BigQuery client for project: {project_id}")
+    client = bigquery.Client(project=project_id)
+    logger.debug("[_get_bigquery_client] BigQuery client created successfully")
+    return client
 
 
 # ============ ONGOING STORMS QUERIES ============
@@ -29,6 +34,7 @@ def get_ongoing_storms_info(lat: float, long: float) -> dict:
     Returns:
         Dictionary with status and storm results
     """
+    logger.info(f"[get_ongoing_storms_info] Querying storm information for lat={lat}, long={long}")
     try:
         client = _get_bigquery_client()
         query = f"""
@@ -36,10 +42,13 @@ def get_ongoing_storms_info(lat: float, long: float) -> dict:
         FROM qwiklabs-gcp-00-fb4bb5fddc00.c4datasetnew.StormLocations
         WHERE LATITUDE = {lat} AND LONGITUDE = {long}
         """
+        logger.debug(f"[get_ongoing_storms_info] Executing BigQuery query for storms")
         results = client.query(query).result()
         rows = [dict(row) for row in results]
+        logger.info(f"[get_ongoing_storms_info] Successfully retrieved {len(rows)} storm records for lat={lat}, long={long}")
         return {"status": "success", "latitude": lat, "longitude": long, "count": len(rows), "storms": rows}
     except Exception as e:
+        logger.error(f"[get_ongoing_storms_info] Error querying storms for lat={lat}, long={long}: {str(e)}", exc_info=True)
         return {"status": "error", "error_message": f"Failed to query storms: {str(e)}"}
 
 
@@ -57,6 +66,7 @@ def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] 
     Returns:
         Dictionary with status and shelter results
     """
+    logger.info(f"[get_available_shelter_info] Querying shelter information for lat={lat}, long={long}, min_beds={min_beds}, onsite_medical_clinic={onsite_medical_clinic}")
     try:
         client = _get_bigquery_client()
 
@@ -65,11 +75,14 @@ def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] 
 
         if min_beds is not None:
             where_conditions.append(f"NUMBER_OF_BEDS > {min_beds}")
+            logger.debug(f"[get_available_shelter_info] Added filter: min_beds > {min_beds}")
 
         if onsite_medical_clinic is not None:
             where_conditions.append(f"ON_SITE_MEDICAL_CLINIC = '{onsite_medical_clinic}'")
+            logger.debug(f"[get_available_shelter_info] Added filter: onsite_medical_clinic = {onsite_medical_clinic}")
 
         where_clause = " AND ".join(where_conditions)
+        logger.debug(f"[get_available_shelter_info] WHERE clause: {where_clause}")
 
         query = f"""
         SELECT
@@ -79,10 +92,13 @@ def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] 
         FROM qwiklabs-gcp-00-fb4bb5fddc00.c4datasetnew.Shelter
         WHERE {where_clause}
         """
+        logger.debug(f"[get_available_shelter_info] Executing BigQuery query for shelters")
         results = client.query(query).result()
         rows = [dict(row) for row in results]
+        logger.info(f"[get_available_shelter_info] Successfully retrieved {len(rows)} shelter records for lat={lat}, long={long}")
         return {"status": "success", "latitude": lat, "longitude": long, "count": len(rows), "shelters": rows}
     except Exception as e:
+        logger.error(f"[get_available_shelter_info] Error querying shelters for lat={lat}, long={long}: {str(e)}", exc_info=True)
         return {"status": "error", "error_message": f"Failed to query shelters: {str(e)}"}
 
 
@@ -90,6 +106,7 @@ def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] 
 
 def check_hospital_capacity(hospital_id: str) -> dict:
     """Check capacity and services of a specific hospital (placeholder)."""
+    logger.debug(f"[check_hospital_capacity] Placeholder called for hospital_id={hospital_id}")
     # Placeholder implementation
     return {"status": "placeholder", "message": "Hospital capacity check not yet implemented"}
 
@@ -98,6 +115,7 @@ def check_hospital_capacity(hospital_id: str) -> dict:
 
 def check_supply_inventory(supply_id: str) -> dict:
     """Check inventory for a specific supply resource (placeholder)."""
+    logger.debug(f"[check_supply_inventory] Placeholder called for supply_id={supply_id}")
     # Placeholder implementation
     return {"status": "placeholder", "message": "Supply inventory check not yet implemented"}
 
@@ -112,11 +130,20 @@ def create_big_query_data_agent():
         description="Common agent for querying BigQuery data for shelters and storms",
         instruction="""You are a common BigQuery Data Agent used by multiple agents for querying disaster and relief data.
 
+CRITICAL: Execute queries IMMEDIATELY without asking for clarification.
+
 You have access to tools for:
 - Getting available shelter information by location with optional filters
 - Getting ongoing storm information by location
 - Checking hospital capacity (placeholder)
 - Checking supply inventory (placeholder)
+
+EXECUTION RULES:
+- Execute queries immediately with the provided coordinates
+- Do NOT ask for clarification or additional parameters
+- Return all available data for the given location
+- Return results in clear, structured format
+- Do NOT wait for user input
 
 Use these tools to retrieve data from BigQuery. Return clear, structured results.""",
         tools=[

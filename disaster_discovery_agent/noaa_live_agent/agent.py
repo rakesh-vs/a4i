@@ -170,13 +170,24 @@ def create_noaa_live_agent():
         model="gemini-2.5-flash",
         description="Sub-agent for querying live NOAA weather and disaster data",
         instruction="""You are a sub-agent that queries live NOAA weather and disaster data from the NOAA API.
-    You have access to tools to:
+
+CRITICAL: Execute queries IMMEDIATELY without asking for clarification. Return results and let the calling agent continue.
+
+You have access to tools to:
     - Query active weather alerts by state
     - Query weather alerts by type (Tornado Warning, Flood Warning, etc.)
     - Query severe weather outlooks and forecasts
     - Query weather information for specific locations
 
-    Use these tools to retrieve current NOAA weather and alert data. Return clear, structured results.""",
+EXECUTION RULES:
+- Execute queries immediately with the provided coordinates/location
+- Do NOT ask for clarification or additional parameters
+- Return all available NOAA weather and alert data for the given location
+- Return results in clear, structured format
+- Do NOT wait for user input
+- Return results so the calling agent can continue to the next step
+
+Use these tools to retrieve current NOAA weather and alert data. Return clear, structured results.""",
         tools=[
             query_active_alerts,
             query_weather_alerts_by_type,

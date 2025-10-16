@@ -1,33 +1,23 @@
-- Rearchitecture this project. 
+clean up big data query agent.
 
-first responder
-- find user location (from user input, gemini live chat)
-- disaster_discovery_agent
-    - big_query_data_agent, uses:
-        - International Disaster Database
-        - Storm Events Database
-        - Disaster Declarations Summaries
-    - fema_live_agent
-        - uses FEMA API
-    - noaa_live_agent
-        - uses NOAA API
+I just want the following funationalities:
 
--relief_finder_agent
-    - shelter_finder_agent
-        - find nearby shelters using map_tool
-        - check shelter capacity using big_query_data_agent
-    - hospital_finder_agent
-        - find nearby hospitals using map tool
-        - check hospital capacity using big_query_data_agent
-    - supply_finder_agent
-        - check supplies using big_query_data_agent
+get_available_shelter_info
+required fields: lat, long
+optional fields: min_beds, onsite_medical_clinic
+eg query:
+SELECT
+ NAME, ADDRESS, CITY, STATE, ZIPCODE, WARD, PROVIDER, TYPE, SUBTYPE, STATUS, NUMBER_OF_BEDS, ON_SITE_MEDICAL_CLINIC, AGES_SERVED, HOW_TO_ACCESS, LGBTQ_FOCUSED, LATITUDE, LONGITUDE 
+FROM
+  qwiklabs-gcp-00-fb4bb5fddc00.c4datasetnew.Shelter where where LATITUDE = 37.7599 and LONGITUDE = -122.4449 and NUMBER_OF_BEDS > 0 and ON_SITE_MEDICAL_CLINIC = 'Yes'
 
 
-1. big_query_data_agent should be common and should have the capabilties for different use cases
-2. map_tool should be common and should have capabilties like
-    = find nearby shelters
-    - find nearby hospitals
-    - find nearby supplies
-    - display_disaster_map
-    - display_relief_resources_map
-    - display_combined_map
+get_ongoing_storms_info
+required fields: lat, long
+eg query:
+SELECT YEARMONTH,EPISODE_ID, LOCATION_INDEX, RANGE, AZIMUTH, LOCATION, LATITUDE, LONGITUDE FROM qwiklabs-gcp-00-fb4bb5fddc00.c4datasetnew.StormLocations where LATITUDE = 37.7599 and LONGITUDE = -122.4449
+
+
+check_hospital_capacity (placeholder)
+
+check_supply_inventory (placeholder)

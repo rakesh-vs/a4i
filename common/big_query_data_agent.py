@@ -5,6 +5,8 @@ import logging
 from google.cloud import bigquery
 from google.adk.agents import Agent
 
+from typing import Optional
+
 logger = logging.getLogger(__name__)
 
 
@@ -80,7 +82,7 @@ def query_storms_by_type(event_type: str, limit: int = 15) -> dict:
         return {"status": "error", "error_message": f"Failed to query storms by type: {str(e)}"}
 
 
-def query_storm_statistics(state: str = None) -> dict:
+def query_storm_statistics(state: Optional[str] = None) -> dict:
     """Get aggregated storm statistics."""
     try:
         client = _get_bigquery_client()
@@ -105,22 +107,26 @@ def query_storm_statistics(state: str = None) -> dict:
 
 # ============ SHELTER QUERIES ============
 
-def query_shelters_by_location(location: str, limit: int = 10) -> dict:
-    """Query available shelters in a location."""
+def query_shelters_by_city(city_name: str, limit: int = 10) -> dict:
+    """Query available shelters in a city.
+    
+    Args:
+        city_name: Name of the city
+        limit: Maximum number of results to return
+        
+    Returns:
+        Dictionary with status and results
+    """
     try:
         client = _get_bigquery_client()
         query = f"""
-        SELECT 
-            shelter_id, name, location, capacity, current_occupancy,
-            address, phone, status
-        FROM `bigquery-public-data.disaster_relief.shelters`
-        WHERE location LIKE '%{location}%'
-        ORDER BY capacity DESC
+        SELECT * FROM qwiklabs-gcp-00-fb4bb5fddc00.c4datasetnew.Shelter 
+        where CITY = '{city_name}'
         LIMIT {limit}
         """
         results = client.query(query).result()
         rows = [dict(row) for row in results]
-        return {"status": "success", "location": location, "count": len(rows), "shelters": rows}
+        return {"status": "success", "city": city_name, "count": len(rows), "shelters": rows}
     except Exception as e:
         return {"status": "error", "error_message": f"Failed to query shelters: {str(e)}"}
 
@@ -255,7 +261,7 @@ Use these tools to retrieve data from BigQuery. Return clear, structured results
             query_storms_by_date_range,
             query_storms_by_type,
             query_storm_statistics,
-            query_shelters_by_location,
+            query_shelters_by_city,
             check_shelter_capacity,
             query_hospitals_by_location,
             check_hospital_capacity,

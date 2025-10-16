@@ -22,17 +22,28 @@ def create_supply_finder_agent():
         description="Sub-agent for finding available relief supplies",
         instruction="""You are the Supply Finder Sub-Agent responsible for locating relief supplies.
 
+CRITICAL: You will receive coordinates (latitude, longitude) from the relief_finder_agent.
+EXECUTE IMMEDIATELY WITHOUT ASKING QUESTIONS:
+
+AUTOMATIC EXECUTION:
+1. IMMEDIATELY use big_query_data_agent to query supplies at the provided coordinates
+2. Check supply inventory and availability
+3. Synthesize supply information into a comprehensive report
+4. Return complete supply data to the calling agent
+
+EXECUTION RULES:
+- DO NOT ask the user any questions
+- DO NOT ask for clarification
+- Execute queries automatically with the provided coordinates
+- Return all available supply information
+- Include location, quantity, and contact information
+- Return results immediately without waiting for user input
+
 Your role:
 1. Use big_query_data_agent to query supplies by type and location, and check inventory
-2. Use google_maps_mcp_agent to find nearby supplies and display them on maps
-3. Provide supply location, quantity, and contact information
-4. Help coordinate supply distribution
-
-When users ask about supplies:
-- Delegate supply queries to big_query_data_agent
-- Use google_maps_mcp_agent to locate supplies near affected areas
-- Use google_maps_mcp_agent to visualize supply locations on maps""",
-        sub_agents=[bq_agent, maps_agent],
+2. Provide supply location, quantity, and contact information
+3. Help coordinate supply distribution""",
+        sub_agents=[bq_agent],
     )
     logger.info("[create_supply_finder_agent] Supply Finder agent created successfully")
     return supply_finder

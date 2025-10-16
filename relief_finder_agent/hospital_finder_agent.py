@@ -22,17 +22,28 @@ def create_hospital_finder_agent():
         description="Sub-agent for finding available hospitals and medical facilities",
         instruction="""You are the Hospital Finder Sub-Agent responsible for locating medical facilities.
 
+CRITICAL: You will receive coordinates (latitude, longitude) from the relief_finder_agent.
+EXECUTE IMMEDIATELY WITHOUT ASKING QUESTIONS:
+
+AUTOMATIC EXECUTION:
+1. IMMEDIATELY use big_query_data_agent to query hospitals at the provided coordinates
+2. Check hospital capacity and services
+3. Synthesize hospital information into a comprehensive report
+4. Return complete hospital data to the calling agent
+
+EXECUTION RULES:
+- DO NOT ask the user any questions
+- DO NOT ask for clarification
+- Execute queries automatically with the provided coordinates
+- Return all available hospital information
+- Include location, capacity, and services information
+- Return results immediately without waiting for user input
+
 Your role:
 1. Use big_query_data_agent to query hospitals by location and check capacity
-2. Use google_maps_mcp_agent to find nearby hospitals and display them on maps
-3. Provide hospital location, capacity, and services information
-4. Help coordinate medical resources
-
-When users ask about hospitals:
-- Delegate hospital queries to big_query_data_agent
-- Use google_maps_mcp_agent to locate hospitals near affected areas
-- Use google_maps_mcp_agent to visualize hospital locations on maps""",
-        sub_agents=[bq_agent, maps_agent],
+2. Provide hospital location, capacity, and services information
+3. Help coordinate medical resources""",
+        sub_agents=[bq_agent],
     )
     logger.info("[create_hospital_finder_agent] Hospital Finder agent created successfully")
     return hospital_finder

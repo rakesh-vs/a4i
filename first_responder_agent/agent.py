@@ -5,7 +5,7 @@ from google.adk.agents import Agent
 from disaster_discovery_agent.agent import create_disaster_discovery_agent
 from relief_finder_agent.agent import create_relief_finder_agent
 from insights_agent.agent import create_insights_agent
-from common.google_maps_mcp_agent import create_google_maps_mcp_agent
+from common.geocoding import geocode_location
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,6 @@ def create_first_responder_agent():
     disaster_discovery = create_disaster_discovery_agent()
     relief_finder = create_relief_finder_agent()
     insights = create_insights_agent()
-    maps_agent = create_google_maps_mcp_agent()
 
     first_responder = Agent(
         name="first_responder",
@@ -26,27 +25,35 @@ def create_first_responder_agent():
         description="Main agent for emergency storm response coordination",
         instruction="""You are the First Responder Main Agent for emergency management and disaster response.
 
+CRITICAL: Execute the following workflow AUTOMATICALLY WITHOUT STOPPING BETWEEN STEPS:
+
+WORKFLOW EXECUTION SEQUENCE:
+1. IF user location is not provided: Ask user for their location ONCE, then immediately proceed to step 2
+2. Convert the location string to latitude/longitude coordinates using the geocode_location tool
+3. IMMEDIATELY call disaster_discovery_agent with the coordinates to discover disasters
+4. IMMEDIATELY call relief_finder_agent with the coordinates to locate relief resources
+5. IMMEDIATELY call insights_agent with ALL collected disaster and relief data to synthesize final analysis
+6. Return the final comprehensive analysis from insights_agent to the user
+
+EXECUTION RULES:
+- Ask for location ONLY if not provided by user
+- After getting location, DO NOT ask for any more user confirmation
+- DO NOT wait for user input between steps 2-6
+- Execute each step immediately after the previous one completes
+- Pass all collected data to the next agent in the chain
+- Ensure insights_agent receives complete disaster AND relief data for synthesis
+- This is a continuous automated workflow after location is obtained
+- Use the geocode_location tool to convert location strings to coordinates
+
 Your role:
-1. FIRST: Ask user for their location and use google_maps_mcp_agent to get coordinates
-2. Coordinate with the disaster_discovery_agent sub-agent to discover and locate disasters
-3. Coordinate with the relief_finder_agent sub-agent to locate relief resources
-4. Use google_maps_mcp_agent to display disaster and relief data on maps
-5. Delegate to insights_agent to synthesize data into comprehensive analysis and action plans
-6. Analyze patterns and provide actionable intelligence for emergency response
-7. Support emergency preparedness and response planning
-8. Prioritize life safety information and critical impacts
-9. Provide clear, actionable recommendations for first responders
+- Coordinate with disaster_discovery_agent to discover and locate disasters
+- Coordinate with relief_finder_agent to locate relief resources
+- Delegate to insights_agent to synthesize data into comprehensive analysis and action plans
+- Provide clear, actionable recommendations for first responders
 
-IMPORTANT: Always start by asking the user for their location and using google_maps_mcp_agent first.
-
-When users ask about disasters or relief:
-- Use google_maps_mcp_agent to get user's location coordinates (ask for it if not provided)
-- Delegate disaster discovery queries to the disaster_discovery_agent sub-agent
-- Delegate relief resource queries to the relief_finder_agent sub-agent
-- Use google_maps_mcp_agent to visualize the data on maps
-- Delegate to insights_agent to synthesize all data into comprehensive analysis, extraction plans, and key recommendations
-- Highlight critical information (casualties, property damage, affected areas, available resources)""",
-        sub_agents=[disaster_discovery, relief_finder, insights, maps_agent],
+IMPORTANT: Once location is obtained, execute all remaining steps in sequence without user intervention.""",
+        tools=[geocode_location],
+        sub_agents=[disaster_discovery, relief_finder, insights],
     )
     logger.info("[create_first_responder_agent] First Responder agent created successfully")
     return first_responder

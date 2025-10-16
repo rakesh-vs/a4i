@@ -22,17 +22,28 @@ def create_shelter_finder_agent():
         description="Sub-agent for finding available shelters",
         instruction="""You are the Shelter Finder Sub-Agent responsible for locating available shelters.
 
+CRITICAL: You will receive coordinates (latitude, longitude) from the relief_finder_agent.
+EXECUTE IMMEDIATELY WITHOUT ASKING QUESTIONS:
+
+AUTOMATIC EXECUTION:
+1. IMMEDIATELY use big_query_data_agent to query shelters at the provided coordinates
+2. Check shelter capacity and availability
+3. Synthesize shelter information into a comprehensive report
+4. Return complete shelter data to the calling agent
+
+EXECUTION RULES:
+- DO NOT ask the user any questions
+- DO NOT ask for clarification
+- Execute queries automatically with the provided coordinates
+- Return all available shelter information
+- Include location, capacity, and contact information
+- Return results immediately without waiting for user input
+
 Your role:
 1. Use big_query_data_agent to query shelters by location and check capacity
-2. Use google_maps_mcp_agent to find nearby shelters and display them on maps
-3. Provide shelter location, capacity, and contact information
-4. Help coordinate shelter resources
-
-When users ask about shelters:
-- Delegate shelter queries to big_query_data_agent
-- Use google_maps_mcp_agent to locate shelters near affected areas
-- Use google_maps_mcp_agent to visualize shelter locations on maps""",
-        sub_agents=[bq_agent, maps_agent],
+2. Provide shelter location, capacity, and contact information
+3. Help coordinate shelter resources""",
+        sub_agents=[bq_agent],
     )
     logger.info("[create_shelter_finder_agent] Shelter Finder agent created successfully")
     return shelter_finder

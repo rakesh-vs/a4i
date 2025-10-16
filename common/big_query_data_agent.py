@@ -45,7 +45,7 @@ def get_ongoing_storms_info(lat: float, long: float) -> dict:
 
 # ============ SHELTER QUERIES ============
 
-def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] = None, onsite_medical_clinic: Optional[str] = None) -> dict:
+def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] = 1, onsite_medical_clinic: Optional[str] = None) -> dict:
     """Query available shelter information by latitude and longitude.
 
     Args:

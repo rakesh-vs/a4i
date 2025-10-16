@@ -2,10 +2,10 @@
 
 import logging
 from google.adk.agents import Agent
-from disaster_discovery_agent.agent import create_disaster_discovery_agent
-from relief_finder_agent.agent import create_relief_finder_agent
-from insights_agent.agent import create_insights_agent
-from common.geocoding import geocode_location
+from .disaster_discovery_agent.agent import create_disaster_discovery_agent
+from .relief_finder_agent.agent import create_relief_finder_agent
+from .insights_agent.agent import create_insights_agent
+from .common.geocoding import geocode_location
 
 logger = logging.getLogger(__name__)
 

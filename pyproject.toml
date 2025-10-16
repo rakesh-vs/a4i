@@ -12,11 +12,11 @@ dependencies = [
 
 [tool.setuptools]
 packages = [
-    "common",
     "first_responder_agent",
-    "disaster_discovery_agent",
-    "disaster_discovery_agent.bq_agent",
-    "disaster_discovery_agent.fema_live_agent",
-    "disaster_discovery_agent.noaa_live_agent",
-    "relief_finder_agent",
+    "first_responder_agent.common",
+    "first_responder_agent.disaster_discovery_agent",
+    "first_responder_agent.disaster_discovery_agent.fema_live_agent",
+    "first_responder_agent.disaster_discovery_agent.noaa_live_agent",
+    "first_responder_agent.relief_finder_agent",
+    "first_responder_agent.insights_agent",
 ]

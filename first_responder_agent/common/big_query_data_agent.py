@@ -26,7 +26,7 @@ def _get_bigquery_client():
 
 def get_ongoing_storms_info(lat: float, long: float, radius_miles: float = 25.0) -> dict:
     """Query ongoing storm information by latitude and longitude with proximity search.
-    
+
     Args:
         lat: Latitude coordinate (required)
         long: Longitude coordinate (required)

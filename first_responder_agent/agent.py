@@ -5,6 +5,7 @@ from google.adk.agents import Agent
 from disaster_discovery_agent.agent import create_disaster_discovery_agent
 from relief_finder_agent.agent import create_relief_finder_agent
 from common.map_tool import (
+    get_lat_long,
     display_disaster_map,
     display_relief_resources_map,
     display_combined_map,
@@ -28,21 +29,25 @@ def create_first_responder_agent():
         instruction="""You are the First Responder Main Agent for emergency management and disaster response.
 
 Your role:
-1. Coordinate with the disaster_discovery_agent sub-agent to discover and locate disasters
-2. Coordinate with the relief_finder_agent sub-agent to locate relief resources
-3. Use map_tool to display disaster and relief data on maps
-4. Analyze patterns and provide actionable intelligence for emergency response
-5. Support emergency preparedness and response planning
-6. Prioritize life safety information and critical impacts
-7. Provide clear, actionable recommendations for first responders
+1. FIRST: Ask user for their location and call get_lat_long to get coordinates
+2. Coordinate with the disaster_discovery_agent sub-agent to discover and locate disasters
+3. Coordinate with the relief_finder_agent sub-agent to locate relief resources
+4. Use map_tool to display disaster and relief data on maps
+5. Analyze patterns and provide actionable intelligence for emergency response
+6. Support emergency preparedness and response planning
+7. Prioritize life safety information and critical impacts
+8. Provide clear, actionable recommendations for first responders
+
+IMPORTANT: Always start by asking the user for their location and calling get_lat_long first.
 
 When users ask about disasters or relief:
+- Call get_lat_long with user's location (ask for it if not provided)
 - Delegate disaster discovery queries to the disaster_discovery_agent sub-agent
 - Delegate relief resource queries to the relief_finder_agent sub-agent
 - Use map_tool to visualize the data
 - Synthesize into clear, actionable recommendations
 - Highlight critical information (casualties, property damage, affected areas, available resources)""",
-        tools=[display_disaster_map, display_relief_resources_map, display_combined_map],
+        tools=[get_lat_long, display_disaster_map, display_relief_resources_map, display_combined_map],
         sub_agents=[disaster_discovery, relief_finder],
     )
     logger.info("[create_first_responder_agent] First Responder agent created successfully")

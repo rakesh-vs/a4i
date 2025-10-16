@@ -6,6 +6,57 @@ from typing import Optional, List, Dict, Any
 logger = logging.getLogger(__name__)
 
 
+# ============ USER LOCATION ============
+
+def get_lat_long(location_input: str) -> dict:
+    """Get latitude and longitude from user location input.
+
+    Args:
+        location_input: User-provided location (address, city, coordinates, etc.)
+
+    Returns:
+        Dictionary with latitude, longitude, and location details
+    """
+    logger.info(f"[get_lat_long] Processing user location input: {location_input}")
+    try:
+        # Parse location input - could be address, city name, or coordinates
+        location_input = location_input.strip()
+
+        # Check if input looks like coordinates (lat,long format)
+        if ',' in location_input:
+            parts = location_input.split(',')
+            if len(parts) == 2:
+                try:
+                    lat = float(parts[0].strip())
+                    lon = float(parts[1].strip())
+                    return {
+                        "status": "success",
+                        "latitude": lat,
+                        "longitude": lon,
+                        "location_input": location_input,
+                        "type": "coordinates"
+                    }
+                except ValueError:
+                    pass
+
+        # For address/city input, would use geocoding service
+        # For now, return success with placeholder for actual geocoding
+        return {
+            "status": "success",
+            "location_input": location_input,
+            "latitude": None,  # Would be populated by geocoding service
+            "longitude": None,  # Would be populated by geocoding service
+            "type": "address",
+            "note": "Geocoding service would convert address to coordinates"
+        }
+    except Exception as e:
+        logger.error(f"[get_lat_long] Error processing location: {str(e)}", exc_info=True)
+        return {
+            "status": "error",
+            "error_message": f"Failed to process location: {str(e)}"
+        }
+
+
 # ============ NEARBY LOCATION FINDERS ============
 
 def find_nearby_shelters(center_location: str, radius_km: float = 10) -> dict:

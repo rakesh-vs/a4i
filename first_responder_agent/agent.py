@@ -4,7 +4,7 @@ import logging
 from google.adk.agents import Agent
 from disaster_discovery_agent.agent import create_disaster_discovery_agent
 from relief_finder_agent.agent import create_relief_finder_agent
-from first_responder_agent.map_tool import (
+from common.map_tool import (
     display_disaster_map,
     display_relief_resources_map,
     display_combined_map,

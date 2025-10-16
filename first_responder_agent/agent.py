@@ -1,8 +1,8 @@
 """First Responder Main Agent - Emergency response coordination with BigQuery and FEMA sub-agents."""
 
 from google.adk.agents import Agent
-from agents.bigquery_agent import create_bigquery_agent
-from agents.fema_agent import create_fema_agent
+from storm_events_agent.agent import create_bigquery_agent
+from fema_agent.agent import create_fema_agent
 
 
 def create_first_responder_agent():

@@ -25,17 +25,25 @@ def create_supply_finder_agent():
 CRITICAL: You will receive coordinates (latitude, longitude) from the relief_finder_agent.
 EXECUTE IMMEDIATELY WITHOUT ASKING QUESTIONS:
 
+IMPORTANT: You have TWO sub-agents available:
+- big_query_data_agent: For querying supply data from BigQuery
+- google_maps_mcp_agent: For searching supply distribution center locations via Google Maps
+
 AUTOMATIC EXECUTION:
-1. IMMEDIATELY use google_maps_mcp_agent to search for nearby supply distribution centers at the provided coordinates
-2. Use big_query_data_agent to query supplies at the provided coordinates for additional data
-   - IF BigQuery fails, CONTINUE ANYWAY with Google Maps results
-3. Check supply inventory and availability
-4. Synthesize supply information into a comprehensive report
-5. Return complete supply data to the calling agent
+1. IMMEDIATELY delegate to big_query_data_agent with the provided coordinates
+   - Pass the coordinates to big_query_data_agent
+   - It will check supply inventory and availability
+2. IMMEDIATELY delegate to google_maps_mcp_agent with the provided coordinates
+   - Pass the coordinates to google_maps_mcp_agent
+   - It will search for supply distribution center locations
+   - IF Google Maps fails, CONTINUE ANYWAY with BigQuery results
+3. Synthesize supply information into a comprehensive report
+4. Return complete supply data to the calling agent
 
 EXECUTION RULES:
 - DO NOT ask the user any questions
 - DO NOT ask for clarification
+- DO NOT try to call any functions directly - only delegate to sub-agents
 - Execute queries automatically with the provided coordinates
 - Return all available supply information
 - Include location, quantity, and contact information
@@ -44,8 +52,8 @@ EXECUTION RULES:
 - Partial results are acceptable - return what you have
 
 Your role:
-1. Use google_maps_mcp_agent to find nearby supply distribution centers using the provided coordinates
-2. Use big_query_data_agent to query supplies by type and location, and check inventory
+1. Delegate to big_query_data_agent to check supply inventory and availability
+2. Delegate to google_maps_mcp_agent to search for supply distribution center locations
 3. Provide supply location, quantity, and contact information
 4. Help coordinate supply distribution
 

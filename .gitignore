@@ -11,3 +11,20 @@ wheels/
 
 # Environment files
 .env
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
+.DS_Store
+*.log
+
+# IDE
+.vscode/

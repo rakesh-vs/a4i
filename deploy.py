@@ -6,7 +6,9 @@ Script for deploying first_responder_agent on vertex agent_engine
 import os
 import subprocess
 import sys
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def deploy():
     """Deploy agent_engine and first_responder_agent to Google Cloud."""

@@ -6,12 +6,12 @@ An intelligent multi-agent system for emergency response coordination and disast
 
 - [Architecture Overview](#-architecture-overview)
 - [Workflow Execution](#-workflow-execution)
-- [Core Components](#-core-components)
-- [Technology Stack](#-technology-stack)
 - [Package Management](#-package-management)
 - [Deployment](#-deployment)
+- [Runner](#-conversational-runner)
 - [Environment Configuration](#-environment-configuration)
-- [Data Flow](#-data-flow)
+- [Core Components](#-core-components)
+- [Tech Stack](#-tech-stack)
 - [Key Features](#-key-features)
 - [Project Structure](#-project-structure)
 - [Agent Communication](#-agent-communication)
@@ -57,6 +57,54 @@ The system executes a coordinated workflow automatically:
    - Hospitals and medical facilities
    - Relief supplies and resources
 5. **Insights Synthesis** - Comprehensive analysis combining all data into actionable recommendations
+
+## 📦 Package Management
+
+This project uses **UV** for fast Python package management.
+
+```bash
+# Install dependencies
+uv sync
+
+# Add a dependency
+uv add package_name
+
+# Add a dev dependency
+uv add --dev package_name
+
+# Update dependencies
+uv sync --upgrade
+```
+
+The `uv.lock` file ensures reproducible builds across environments.
+
+## 🚀 Deployment
+
+The system is deployed to Google Cloud using the ADK deployment tool:
+
+```bash
+python deploy.py
+```
+
+## 💬 Conversational Runner
+
+After deployment, interact with the agent through a conversational chat interface:
+
+```bash
+uv run python runner.py
+```
+
+This starts an interactive chat loop where you can:
+- Type messages to query the First Responder Agent
+- Receive streaming responses in real-time
+- Have multi-turn conversations
+- Exit with `exit` or `quit` commands
+
+The runner uses environment variables from `.env` to connect to your deployed agent.
+
+## 🔑 Environment Configuration
+
+For required environment variables, refer `.env.example`
 
 ## 📦 Core Components
 
@@ -118,7 +166,7 @@ Synthesizes all collected data into comprehensive analysis:
   - Calculates distances and routes
   - Uses Model Context Protocol (MCP)
 
-## 🔧 Technology Stack
+## 🔧 Tech Stack
 
 - **Framework**: Google ADK (Agent Development Kit)
 - **LLM**: Gemini 2.5 Flash
@@ -132,47 +180,6 @@ Synthesizes all collected data into comprehensive analysis:
   - `google-adk>=1.16.0` - Agent framework
   - `pydantic>=2.12.2` - Data validation
   - `python-dotenv>=1.1.1` - Environment configuration
-
-## 📦 Package Management
-
-This project uses **UV** for fast Python package management.
-
-```bash
-# Install dependencies
-uv sync
-
-# Add a dependency
-uv add package_name
-
-# Add a dev dependency
-uv add --dev package_name
-
-# Update dependencies
-uv sync --upgrade
-```
-
-The `uv.lock` file ensures reproducible builds across environments.
-
-## 🚀 Deployment
-
-The system is deployed to Google Cloud using the ADK deployment tool:
-
-```bash
-python deploy.py
-```
-
-## 🔐 Environment Configuration
-
-For required environment variables, refer `.env.example`
-
-## 📊 Data Flow
-
-1. User provides location → Geocoding converts to coordinates
-2. Coordinates distributed to all discovery agents in parallel
-3. Each agent queries its data sources independently
-4. Results aggregated and passed to Insights Agent
-5. Insights Agent synthesizes comprehensive analysis
-6. Final recommendations returned to user
 
 ## 🎯 Key Features
 

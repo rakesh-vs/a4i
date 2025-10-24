@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 def _get_bigquery_client():
     """Get BigQuery client."""
     logger.info("[_get_bigquery_client] Attempting to get BigQuery client")
-    project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+    project_id = os.getenv("GCP_PROJECT")
     if not project_id:
-        logger.error("[_get_bigquery_client] GOOGLE_CLOUD_PROJECT environment variable not set")
-        raise ValueError("GOOGLE_CLOUD_PROJECT environment variable not set")
+        logger.error("[_get_bigquery_client] GCP_PROJECT environment variable not set")
+        raise ValueError("GCP_PROJECT environment variable not set")
     logger.info(f"[_get_bigquery_client] Creating BigQuery client for project: {project_id}")
     client = bigquery.Client(project=project_id)
     logger.info("[_get_bigquery_client] BigQuery client created successfully")
@@ -47,13 +47,13 @@ def get_ongoing_storms_info(lat: float, long: float, radius_miles: float = 25.0)
 
         query = f"""
         SELECT YEARMONTH, EPISODE_ID, LOCATION_INDEX, AZIMUTH, LOCATION, LATITUDE, LONGITUDE
-        FROM qwiklabs-gcp-00-fb4bb5fddc00.c4datasetnew.StormLocations
+        FROM `{client.project}`.c4datasetnew.StormLocations
         WHERE LATITUDE BETWEEN {lat_min} AND {lat_max}
           AND LONGITUDE BETWEEN {long_min} AND {long_max}
         ORDER BY LATITUDE, LONGITUDE
         LIMIT 100
         """
-        logger.info(f"[get_ongoing_storms_info] Executing BigQuery proximity search for storms within {radius_miles} miles")
+        logger.info(f"[get_ongoing_storms_info] Executing BigQuery proximity search for storms within {radius_miles} miles: {query}")
         results = client.query(query).result()
         rows = [dict(row) for row in results]
         logger.info(f"[get_ongoing_storms_info] Successfully retrieved {len(rows)} storm records for lat={lat}, long={long}")
@@ -100,7 +100,7 @@ def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] 
             NAME, ADDRESS, CITY, STATE, ZIPCODE, WARD, PROVIDER, TYPE, SUBTYPE, STATUS,
             NUMBER_OF_BEDS, ON_SITE_MEDICAL_CLINIC, AGES_SERVED, HOW_TO_ACCESS, LGBTQ_FOCUSED,
             LATITUDE, LONGITUDE
-        FROM qwiklabs-gcp-00-fb4bb5fddc00.c4datasetnew.Shelter
+        FROM `{client.project}`.c4datasetnew.Shelter
         WHERE {where_clause}
         """
         logger.info(f"[get_available_shelter_info] Executing BigQuery {query} for shelters")

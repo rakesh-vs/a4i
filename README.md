@@ -2,8 +2,11 @@
 
 An intelligent multi-agent system for emergency response coordination and disaster management. The system orchestrates multiple specialized AI agents to discover disasters, locate relief resources, and synthesize actionable intelligence for first responders.
 
+**NEW**: Now with a modern web UI powered by CopilotKit + Next.js!
+
 ## 📋 Table of Contents
 
+- [Quick Start - Web UI](#-quick-start---web-ui)
 - [Architecture Overview](#-architecture-overview)
 - [Workflow Execution](#-workflow-execution)
 - [Package Management](#-package-management)
@@ -16,6 +19,69 @@ An intelligent multi-agent system for emergency response coordination and disast
 - [Project Structure](#-project-structure)
 - [Agent Communication](#-agent-communication)
 - [Extensibility](#-extensibility)
+
+## 🚀 Quick Start - Web UI
+
+### Prerequisites
+- Python 3.12+
+- Node.js 18+
+- Google Cloud credentials (for agent functionality)
+
+### Setup
+
+1. **Clone and install Python dependencies**:
+```bash
+# Create virtual environment with Python 3.12
+uv venv --python 3.12
+
+# Activate virtual environment
+source .venv/bin/activate
+
+# Install Python dependencies
+uv pip install -e .
+```
+
+2. **Install Node.js dependencies**:
+```bash
+cd ui
+npm install
+cd ..
+```
+
+3. **Configure environment variables**:
+```bash
+# Copy .env.example to .env and fill in your credentials
+cp .env.example .env
+# Edit .env and add your GOOGLE_API_KEY
+```
+
+4. **Run the development servers**:
+
+**Terminal 1 - Agent Backend:**
+```bash
+source .venv/bin/activate
+cd agent
+python main.py
+```
+
+**Terminal 2 - Next.js UI:**
+```bash
+cd ui
+npm run dev
+```
+
+5. **Open the app**:
+- Web UI: http://localhost:3000
+- Agent API: http://localhost:8000
+
+### Usage
+
+1. Open http://localhost:3000 in your browser
+2. Click the chat sidebar on the right
+3. Ask questions like:
+   - "What disasters are happening near San Francisco?"
+   - "Find relief resources in Los Angeles"
+   - "What's the weather situation in Miami?"
 
 ## 🏗️ Architecture Overview
 
@@ -168,18 +234,34 @@ Synthesizes all collected data into comprehensive analysis:
 
 ## 🔧 Tech Stack
 
+### Backend
 - **Framework**: Google ADK (Agent Development Kit)
 - **LLM**: Gemini 2.5 Flash
+- **API**: FastAPI + Uvicorn
 - **Data Sources**:
   - BigQuery (historical storm and shelter data)
   - FEMA OpenFEMA API (disaster declarations)
   - NOAA Weather API (weather alerts and forecasts)
   - Google Maps API (geocoding and mapping)
-- **Language**: Python 3.11+
+- **Language**: Python 3.12+
 - **Dependencies**:
   - `google-adk>=1.16.0` - Agent framework
+  - `fastapi>=0.104.0` - Web API framework
+  - `uvicorn>=0.24.0` - ASGI server
+  - `ag-ui-adk>=0.3.1` - AG-UI protocol adapter for ADK
   - `pydantic>=2.12.2` - Data validation
   - `python-dotenv>=1.1.1` - Environment configuration
+
+### Frontend
+- **Framework**: Next.js 15+ (React)
+- **UI Library**: CopilotKit React Components
+- **Styling**: Tailwind CSS
+- **Language**: TypeScript
+- **Dependencies**:
+  - `@copilotkit/react-core` - CopilotKit core
+  - `@copilotkit/react-ui` - CopilotKit UI components
+  - `@copilotkit/runtime` - CopilotKit runtime
+  - `@ag-ui/client` - AG-UI client for ADK integration
 
 ## 🎯 Key Features
 
@@ -194,7 +276,7 @@ Synthesizes all collected data into comprehensive analysis:
 
 ```
 a4i/
-├── first_responder_agent/
+├── first_responder_agent/                # Core agent system
 │   ├── agent.py                          # Root agent
 │   ├── common/
 │   │   ├── geocoding.py                  # Location geocoding
@@ -213,8 +295,22 @@ a4i/
 │   │   └── supply_finder_agent.py        # Supply location queries
 │   └── insights_agent/
 │       └── agent.py                      # Analysis & synthesis
-├── deploy.py                             # Deployment script
-├── pyproject.toml                        # Project configuration
+├── agent/                                # FastAPI backend wrapper
+│   ├── main.py                           # FastAPI app with AG-UI ADK integration
+│   └── __init__.py
+├── ui/                                   # Next.js frontend
+│   ├── app/
+│   │   ├── api/copilotkit/
+│   │   │   └── route.ts                  # CopilotKit API route with HttpAgent
+│   │   ├── layout.tsx                    # Root layout with CopilotKit provider
+│   │   ├── page.tsx                      # Main page with chat interface
+│   │   └── globals.css                   # Global styles
+│   ├── package.json                      # Node.js dependencies
+│   └── next.config.ts                    # Next.js configuration
+├── deploy.py                             # Cloud deployment script
+├── runner.py                             # CLI conversational runner
+├── pyproject.toml                        # Python project configuration
+├── .env                                  # Environment variables (not in git)
 └── README.md                             # This file
 ```
 

@@ -2,6 +2,7 @@
 
 import { CopilotKitCSSProperties, CopilotChat } from "@copilotkit/react-ui";
 import { useState } from "react";
+import { AgentActivityIndicator } from "@/components/AgentActivityIndicator";
 
 export default function Home() {
   const [accentColor] = useState("#3b82f6"); // Blue color
@@ -28,6 +29,9 @@ export default function Home() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col bg-white justify-center">
         <div className="w-full max-w-2xl h-full mx-auto flex flex-col overflow-hidden">
+          {/* Agent Activity Indicator - rendered at top level */}
+          <AgentActivityIndicator />
+
           <CopilotChat
             instructions="You are the First Responder Agent, an AI assistant specialized in emergency response coordination. You help users with disaster discovery, finding relief resources, and providing intelligent insights for emergency situations. Be helpful, clear, and provide actionable information."
             labels={{

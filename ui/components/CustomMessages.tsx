@@ -1,7 +1,6 @@
 "use client";
 
 import { MessagesProps } from "@copilotkit/react-ui/dist/components/chat/props";
-import { AgentActivityIndicator } from "./AgentActivityIndicator";
 
 export function CustomMessages(props: MessagesProps) {
   const {
@@ -44,13 +43,10 @@ export function CustomMessages(props: MessagesProps) {
           />
         ) : null;
       })}
-      
-      {/* Activity Indicator */}
-      <AgentActivityIndicator />
-      
+
       {/* Error Message */}
       {chatError && ErrorMessage && <ErrorMessage error={chatError} isCurrentMessage />}
-      
+
       {/* Children (suggestions, etc.) */}
       {children}
     </>

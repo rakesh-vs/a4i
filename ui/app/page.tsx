@@ -2,7 +2,8 @@
 
 import { CopilotKitCSSProperties, CopilotChat } from "@copilotkit/react-ui";
 import { useState } from "react";
-import { AgentActivityIndicator } from "@/components/AgentActivityIndicator";
+import { AgentProcessingPanel } from "@/components/AgentProcessingPanel";
+import { MapPanel } from "@/components/MapPanel";
 
 export default function Home() {
   const [accentColor] = useState("#3b82f6"); // Blue color
@@ -26,19 +27,29 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white justify-center">
-        <div className="w-full max-w-2xl h-full mx-auto flex flex-col overflow-hidden">
-          {/* Agent Activity Indicator - rendered at top level */}
-          <AgentActivityIndicator />
+      {/* Main Content Area - Layout: Map (2) | Chat (2) | Status (1) */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Column - Map */}
+        <div style={{ flex: "2" }} className="flex flex-col bg-gray-100 overflow-hidden border-r border-gray-200">
+          <MapPanel />
+        </div>
 
-          <CopilotChat
-            instructions="You are the First Responder Agent, an AI assistant specialized in emergency response coordination. You help users with disaster discovery, finding relief resources, and providing intelligent insights for emergency situations. Be helpful, clear, and provide actionable information."
-            labels={{
-              initial: "👋 Welcome to First Responder Agent\n\nI'm your AI emergency response assistant. I can help you with:\n\n🌪️ **Disaster Discovery**\n• Track active disasters and emergencies\n• Get real-time updates from FEMA and NOAA\n\n🏥 **Relief Resources**\n• Find emergency shelters\n• Locate medical facilities\n• Discover relief organizations\n\n📊 **Intelligent Insights**\n• Analyze emergency situations\n• Get AI-powered recommendations\n• Coordinate response efforts\n\nWhat would you like to know?",
-              placeholder: "Ask about disasters, relief resources, or emergency response...",
-            }}
-          />
+        {/* Center Column - Chat */}
+        <div style={{ flex: "2" }} className="flex flex-col bg-white overflow-hidden border-r border-gray-200">
+          <div className="w-full h-full flex flex-col overflow-hidden">
+            <CopilotChat
+              instructions="You are the First Responder Agent, an AI assistant specialized in emergency response coordination. You help users with disaster discovery, finding relief resources, and providing intelligent insights for emergency situations. Be helpful, clear, and provide actionable information."
+              labels={{
+                initial: "👋 Welcome to First Responder Agent\n\nI'm your AI emergency response assistant. I can help you with:\n\n🌪️ **Disaster Discovery**\n• Track active disasters and emergencies\n• Get real-time updates from FEMA and NOAA\n\n🏥 **Relief Resources**\n• Find emergency shelters\n• Locate medical facilities\n• Discover relief organizations\n\n📊 **Intelligent Insights**\n• Analyze emergency situations\n• Get AI-powered recommendations\n• Coordinate response efforts\n\nWhat would you like to know?",
+                placeholder: "Ask about disasters, relief resources, or emergency response...",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Right Column - Agent Processing Panel (Half width of chat) */}
+        <div style={{ flex: "1" }} className="flex flex-col overflow-hidden">
+          <AgentProcessingPanel />
         </div>
       </div>
     </main>

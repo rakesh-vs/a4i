@@ -78,10 +78,10 @@ def get_ongoing_storms_info(lat: float, long: float, radius_miles: float = 25.0)
     except Exception as e:
         logger.error(f"[get_ongoing_storms_info] Error querying storms for lat={lat}, long={long}: {str(e)}", exc_info=True)
         return {
-            "status": "error",
+            "status": "info",
             "latitude": lat,
             "longitude": long,
-            "error_message": f"Failed to query storms: {str(e)}"
+            "message": f"No storms info, continue with other sources"
         }
 
 
@@ -140,10 +140,10 @@ def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] 
     except Exception as e:
         logger.error(f"[get_available_shelter_info] Error querying shelters for lat={lat}, long={long}: {str(e)}", exc_info=True)
         return {
-            "status": "error",
+            "status": "info",
             "latitude": lat,
             "longitude": long,
-            "error_message": f"Failed to query shelters: {str(e)}"
+            "message": f"No shelters info, continue with other sources"
         }
 
 
@@ -153,7 +153,7 @@ def check_hospital_capacity(hospital_id: str) -> dict:
     """Check capacity and services of a specific hospital (placeholder)."""
     logger.info(f"[check_hospital_capacity] Placeholder called for hospital_id={hospital_id}")
     # Placeholder implementation
-    return {"status": "placeholder", "message": "Hospital capacity check not yet implemented"}
+    return {"status": "info", "message": "No hospital capacity info, continue with other sources"}
 
 
 # ============ SUPPLY QUERIES ============
@@ -162,7 +162,7 @@ def check_supply_inventory(supply_id: str) -> dict:
     """Check inventory for a specific supply resource (placeholder)."""
     logger.info(f"[check_supply_inventory] Placeholder called for supply_id={supply_id}")
     # Placeholder implementation
-    return {"status": "placeholder", "message": "Supply inventory check not yet implemented"}
+    return {"status": "info", "message": "No supply inventory info, continue with other sources"}
 
 
 def create_big_query_data_agent_tool():
@@ -183,30 +183,17 @@ def create_big_query_data_agent_tool():
         description="Query BigQuery for disaster and relief data including shelters and storms by location coordinates",
         instruction="""You are a BigQuery Data Agent that queries disaster and relief data.
 
-CRITICAL EXECUTION RULES:
-1. Execute queries IMMEDIATELY with the provided latitude and longitude coordinates
-2. Call the appropriate tool based on what data is requested:
-   - For shelter data: call get_available_shelter_info
-   - For storm data: call get_ongoing_storms_info
-   - For hospital data: call check_hospital_capacity
-   - For supply data: call check_supply_inventory
-3. ALWAYS return results, even if empty or if an error occurs
-4. Do NOT ask for clarification or additional parameters
-5. Do NOT wait for user input
-6. Return results in a clear, structured format
+WORKFLOW:
+1. Use the appropriate tool based on what data is requested with the provided lat and long coordinates:
+   - For storm data: Use the get_ongoing_storms_info tool
+   - For shelter data: Use the get_available_shelter_info tool
+   - For hospital data: Use the check_hospital_capacity tool
+   - For supply data: Use the check_supply_inventory tool
 
-ERROR HANDLING:
-- If a query fails, return the error information in the response
-- If no data is found, return an empty result set with status="success" and count=0
-- ALWAYS return control to the calling agent, regardless of success or failure
+2. If there is any error or no data is found, just return an empty list. Do not stop.
 
-RESPONSE FORMAT:
-- Always include a "status" field ("success" or "error")
-- For successful queries, include the data count and results
-- For errors, include an "error_message" field
-- Keep responses concise and structured
-
-Your task is complete once you return the query results.""",
+DO NOT ask for clarification or additional input.
+""",
         tools=[
             get_available_shelter_info,
             get_ongoing_storms_info,

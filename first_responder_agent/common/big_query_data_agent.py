@@ -5,21 +5,31 @@ import logging
 from typing import Optional
 from google.cloud import bigquery
 from google.adk.agents import Agent
+from google.adk.tools.agent_tool import AgentTool
 
 logger = logging.getLogger(__name__)
 
 
 def _get_bigquery_client():
-    """Get BigQuery client."""
+    """Get BigQuery client.
+
+    Raises:
+        ValueError: If GCP_PROJECT environment variable is not set
+        Exception: If BigQuery client creation fails
+    """
     logger.info("[_get_bigquery_client] Attempting to get BigQuery client")
     project_id = os.getenv("GCP_PROJECT")
     if not project_id:
         logger.error("[_get_bigquery_client] GCP_PROJECT environment variable not set")
         raise ValueError("GCP_PROJECT environment variable not set")
     logger.info(f"[_get_bigquery_client] Creating BigQuery client for project: {project_id}")
-    client = bigquery.Client(project=project_id)
-    logger.info("[_get_bigquery_client] BigQuery client created successfully")
-    return client
+    try:
+        client = bigquery.Client(project=project_id)
+        logger.info("[_get_bigquery_client] BigQuery client created successfully")
+        return client
+    except Exception as e:
+        logger.error(f"[_get_bigquery_client] Failed to create BigQuery client: {str(e)}", exc_info=True)
+        raise
 
 
 # ============ ONGOING STORMS QUERIES ============
@@ -27,13 +37,20 @@ def _get_bigquery_client():
 def get_ongoing_storms_info(lat: float, long: float, radius_miles: float = 25.0) -> dict:
     """Query ongoing storm information by latitude and longitude with proximity search.
 
+    This function queries BigQuery for storm data within a specified radius of the given coordinates.
+    It ALWAYS returns a result, even if no storms are found or if an error occurs.
+
     Args:
-        lat: Latitude coordinate (required)
-        long: Longitude coordinate (required)
+        lat: Latitude coordinate in decimal degrees (required, e.g., 40.7128 for New York)
+        long: Longitude coordinate in decimal degrees (required, e.g., -74.0060 for New York)
         radius_miles: Search radius in miles (default: 25 miles)
 
     Returns:
-        Dictionary with status and storm results
+        Dictionary with the following structure:
+        - On success: {"status": "success", "latitude": lat, "longitude": long, "count": int, "storms": list}
+        - On error: {"status": "error", "error_message": str}
+
+        Note: Empty results (count=0) are considered successful and return status="success"
     """
     logger.info(f"[get_ongoing_storms_info] Querying storm information for lat={lat}, long={long}, radius={radius_miles} miles")
     try:
@@ -60,7 +77,12 @@ def get_ongoing_storms_info(lat: float, long: float, radius_miles: float = 25.0)
         return {"status": "success", "latitude": lat, "longitude": long, "count": len(rows), "storms": rows}
     except Exception as e:
         logger.error(f"[get_ongoing_storms_info] Error querying storms for lat={lat}, long={long}: {str(e)}", exc_info=True)
-        return {"status": "error", "error_message": f"Failed to query storms: {str(e)}"}
+        return {
+            "status": "error",
+            "latitude": lat,
+            "longitude": long,
+            "error_message": f"Failed to query storms: {str(e)}"
+        }
 
 
 # ============ SHELTER QUERIES ============
@@ -68,14 +90,21 @@ def get_ongoing_storms_info(lat: float, long: float, radius_miles: float = 25.0)
 def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] = 1, onsite_medical_clinic: Optional[str] = None) -> dict:
     """Query available shelter information by latitude and longitude.
 
+    This function queries BigQuery for shelter data at the specified coordinates.
+    It ALWAYS returns a result, even if no shelters are found or if an error occurs.
+
     Args:
-        lat: Latitude coordinate (required)
-        long: Longitude coordinate (required)
-        min_beds: Minimum number of beds (optional)
+        lat: Latitude coordinate in decimal degrees (required, e.g., 40.7128 for New York)
+        long: Longitude coordinate in decimal degrees (required, e.g., -74.0060 for New York)
+        min_beds: Minimum number of beds required (optional, default: 1)
         onsite_medical_clinic: Filter by onsite medical clinic availability (optional, 'Yes' or 'No')
 
     Returns:
-        Dictionary with status and shelter results
+        Dictionary with the following structure:
+        - On success: {"status": "success", "latitude": lat, "longitude": long, "count": int, "shelters": list}
+        - On error: {"status": "error", "error_message": str}
+
+        Note: Empty results (count=0) are considered successful and return status="success"
     """
     logger.info(f"[get_available_shelter_info] Querying shelter information for lat={lat}, long={long}, min_beds={min_beds}, onsite_medical_clinic={onsite_medical_clinic}")
     try:
@@ -110,7 +139,12 @@ def get_available_shelter_info(lat: float, long: float, min_beds: Optional[int] 
         return {"status": "success", "latitude": lat, "longitude": long, "count": len(rows), "shelters": rows}
     except Exception as e:
         logger.error(f"[get_available_shelter_info] Error querying shelters for lat={lat}, long={long}: {str(e)}", exc_info=True)
-        return {"status": "error", "error_message": f"Failed to query shelters: {str(e)}"}
+        return {
+            "status": "error",
+            "latitude": lat,
+            "longitude": long,
+            "error_message": f"Failed to query shelters: {str(e)}"
+        }
 
 
 # ============ HOSPITAL QUERIES ============
@@ -131,42 +165,48 @@ def check_supply_inventory(supply_id: str) -> dict:
     return {"status": "placeholder", "message": "Supply inventory check not yet implemented"}
 
 
-def create_big_query_data_agent():
-    """Create and return the common BigQuery Data agent."""
-    logger.info("[create_big_query_data_agent] Creating common BigQuery Data agent")
+def create_big_query_data_agent_tool():
+    """Create and return the BigQuery Data agent wrapped as an AgentTool.
+
+    This function creates a BigQuery agent and wraps it as an AgentTool so it can be
+    called directly by other agents. The tool always returns control to the calling agent,
+    even when errors occur.
+
+    Returns:
+        AgentTool: The BigQuery agent wrapped as a tool
+    """
+    logger.info("[create_big_query_data_agent_tool] Creating BigQuery Data agent tool")
 
     big_query_agent = Agent(
         name="big_query_data_agent",
         model="gemini-2.5-flash",
-        description="Common agent for querying BigQuery data for shelters and storms",
-        instruction="""You are a common BigQuery Data Agent used by multiple agents for querying disaster and relief data.
+        description="Query BigQuery for disaster and relief data including shelters and storms by location coordinates",
+        instruction="""You are a BigQuery Data Agent that queries disaster and relief data.
 
-CRITICAL: Execute queries IMMEDIATELY without asking for clarification. ALWAYS RETURN RESULTS EVEN IF EMPTY. THEN COMPLETE YOUR TASK.
+CRITICAL EXECUTION RULES:
+1. Execute queries IMMEDIATELY with the provided latitude and longitude coordinates
+2. Call the appropriate tool based on what data is requested:
+   - For shelter data: call get_available_shelter_info
+   - For storm data: call get_ongoing_storms_info
+   - For hospital data: call check_hospital_capacity
+   - For supply data: call check_supply_inventory
+3. ALWAYS return results, even if empty or if an error occurs
+4. Do NOT ask for clarification or additional parameters
+5. Do NOT wait for user input
+6. Return results in a clear, structured format
 
-You have access to tools for:
-- Getting available shelter information by location with optional filters
-- Getting ongoing storm information by location
-- Checking hospital capacity (placeholder)
-- Checking supply inventory (placeholder)
+ERROR HANDLING:
+- If a query fails, return the error information in the response
+- If no data is found, return an empty result set with status="success" and count=0
+- ALWAYS return control to the calling agent, regardless of success or failure
 
-EXECUTION RULES:
-- Execute queries immediately with the provided coordinates
-- Do NOT ask for clarification or additional parameters
-- Return all available data for the given location
-- Return results in clear, structured format
-- Do NOT wait for user input
-- IMPORTANT: Always return results to the calling agent, even if no data is found
-- Empty results are valid results - return them immediately
-- Do NOT stop or ask for clarification if results are empty
-- AFTER RETURNING RESULTS, YOUR TASK IS COMPLETE - let the calling agent continue
+RESPONSE FORMAT:
+- Always include a "status" field ("success" or "error")
+- For successful queries, include the data count and results
+- For errors, include an "error_message" field
+- Keep responses concise and structured
 
-TASK COMPLETION:
-1. Call the appropriate tool with the provided coordinates
-2. Receive the results (even if empty)
-3. Return the results to the calling agent
-4. Your task is now complete - do not ask for more input or clarification
-
-Use these tools to retrieve data from BigQuery. Return clear, structured results. Always return results immediately after querying, regardless of whether data was found or not. Then your task is complete.""",
+Your task is complete once you return the query results.""",
         tools=[
             get_available_shelter_info,
             get_ongoing_storms_info,
@@ -174,6 +214,11 @@ Use these tools to retrieve data from BigQuery. Return clear, structured results
             check_supply_inventory,
         ],
     )
-    logger.info("[create_big_query_data_agent] BigQuery Data agent created successfully")
-    return big_query_agent
+
+    # Wrap the agent as an AgentTool with skip_summarization=True
+    # This ensures the raw results are passed back without additional LLM processing
+    agent_tool = AgentTool(agent=big_query_agent, skip_summarization=True)
+
+    logger.info("[create_big_query_data_agent_tool] BigQuery Data agent tool created successfully")
+    return agent_tool
 

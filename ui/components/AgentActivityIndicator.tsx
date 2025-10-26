@@ -14,6 +14,11 @@ const AGENT_MESSAGES: Record<string, string> = {
   "insights_agent": "📊 Analyzing data and creating action plan...",
   "fema_live_agent": "🚨 Checking FEMA disaster data...",
   "noaa_live_agent": "🌊 Checking NOAA weather alerts...",
+  "bigquery_storms_tool": "🌩️ Querying storm data from BigQuery...",
+  "bigquery_shelter_tool": "🏠 Querying shelter data from BigQuery...",
+  "bigquery_hospital_tool": "🏥 Querying hospital data from BigQuery...",
+  "bigquery_supply_tool": "📦 Querying supply data from BigQuery...",
+  "maps_search_tool": "🗺️ Searching locations on Google Maps...",
 };
 
 export function AgentActivityIndicator() {

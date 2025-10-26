@@ -49,7 +49,7 @@ def find_supplies(
         # Step 1: Query BigQuery for supply inventory data
         logger.info(f"[find_supplies] Step 1: Querying BigQuery for supply inventory")
         try:
-            bq_result = check_supply_inventory(f"supply_{latitude}_{longitude}")
+            bq_result = check_supply_inventory(tool_context, f"supply_{latitude}_{longitude}")
             if bq_result.get("status") == "success":
                 results["bigquery_supplies"] = bq_result.get("supplies", [])
                 logger.info(f"[find_supplies] Found {len(results['bigquery_supplies'])} supplies from BigQuery")

@@ -49,7 +49,7 @@ def find_hospitals(
         # Step 1: Query BigQuery for hospital capacity data
         logger.info(f"[find_hospitals] Step 1: Querying BigQuery for hospital data")
         try:
-            bq_result = check_hospital_capacity(f"hospital_{latitude}_{longitude}")
+            bq_result = check_hospital_capacity(tool_context, f"hospital_{latitude}_{longitude}")
             if bq_result.get("status") == "success":
                 results["bigquery_hospitals"] = bq_result.get("hospitals", [])
                 logger.info(f"[find_hospitals] Found {len(results['bigquery_hospitals'])} hospitals from BigQuery")

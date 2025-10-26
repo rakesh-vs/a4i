@@ -33,19 +33,24 @@ def search_nearby_places(
 ) -> Dict[str, Any]:
     """
     Search for nearby places and automatically update the map state.
-    
+
     Args:
         tool_context: The tool context containing state
         latitude: Latitude coordinate
         longitude: Longitude coordinate
         place_type: Type of place (hospital, shelter, pharmacy, etc.)
         radius: Search radius in meters (default: 5000)
-    
+
     Returns:
         Dict with search results
     """
+    from .state_tools import update_agent_activity
+
     try:
         logger.info(f"[search_nearby_places] 🔍 CALLED by agent - Searching for {place_type} near ({latitude}, {longitude})")
+
+        # Update agent activity
+        update_agent_activity(tool_context.state, "maps_search_tool", "running")
 
         gmaps = get_gmaps_client()
         if not gmaps:
@@ -115,16 +120,23 @@ def search_nearby_places(
         }
 
         logger.info(f"[search_nearby_places] ✅ MAP UPDATE for {place_type}: Added {len(locations)} locations (before: {before_count}, after: {after_count})")
-        
+
+        # Mark as completed
+        update_agent_activity(tool_context.state, "maps_search_tool", "completed")
+
         return {
             "status": "success",
             "message": f"Found {len(locations)} {place_type}(s)",
             "locations": locations,
             "total_on_map": len(tool_context.state["locations"])
         }
-        
+
     except Exception as e:
         logger.error(f"[search_nearby_places] Error: {str(e)}")
+
+        # Mark as completed even on error
+        update_agent_activity(tool_context.state, "maps_search_tool", "completed")
+
         return {
             "status": "error",
             "message": f"Error searching places: {str(e)}"

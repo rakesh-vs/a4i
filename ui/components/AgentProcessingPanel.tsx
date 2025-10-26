@@ -65,6 +65,36 @@ const AGENT_INFO: Record<string, { name: string; icon: string; description: stri
     description: "Checking weather alerts and forecasts",
     color: "blue"
   },
+  "bigquery_storms_tool": {
+    name: "BigQuery Storms",
+    icon: "🌩️",
+    description: "Querying storm data from BigQuery",
+    color: "purple"
+  },
+  "bigquery_shelter_tool": {
+    name: "BigQuery Shelters",
+    icon: "🏠",
+    description: "Querying shelter data from BigQuery",
+    color: "purple"
+  },
+  "bigquery_hospital_tool": {
+    name: "BigQuery Hospitals",
+    icon: "🏥",
+    description: "Querying hospital data from BigQuery",
+    color: "purple"
+  },
+  "bigquery_supply_tool": {
+    name: "BigQuery Supplies",
+    icon: "📦",
+    description: "Querying supply data from BigQuery",
+    color: "purple"
+  },
+  "maps_search_tool": {
+    name: "Google Maps Search",
+    icon: "🗺️",
+    description: "Searching locations on Google Maps",
+    color: "green"
+  },
 };
 
 interface AgentActivity {

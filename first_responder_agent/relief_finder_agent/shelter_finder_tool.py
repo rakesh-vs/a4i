@@ -49,7 +49,7 @@ def find_shelters(
         # Step 1: Query BigQuery for shelter data
         logger.info(f"[find_shelters] Step 1: Querying BigQuery for shelter data")
         try:
-            bq_result = bq_get_shelter_info(latitude, longitude)
+            bq_result = bq_get_shelter_info(tool_context, latitude, longitude)
             if bq_result.get("status") == "success":
                 results["bigquery_shelters"] = bq_result.get("shelters", [])
                 logger.info(f"[find_shelters] Found {len(results['bigquery_shelters'])} shelters from BigQuery")

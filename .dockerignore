@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+*.log
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js
+ui/.next/
+ui/out/
+ui/build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+*.md
+abyss/
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+agent_run.log
+
+# Deployment
+deploy.py
+runner.py
+deployment_logs.txt
+

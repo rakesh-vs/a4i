@@ -1,6 +1,6 @@
 "use client";
 
-import { MessagesProps } from "@copilotkit/react-ui/dist/components/chat/props";
+import type { MessagesProps } from "@copilotkit/react-ui";
 
 export function CustomMessages(props: MessagesProps) {
   const {

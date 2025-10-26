@@ -49,11 +49,22 @@ cd ..
 ```
 
 3. **Configure environment variables**:
+
+**Backend environment variables:**
 ```bash
 # Copy .env.example to .env and fill in your credentials
 cp .env.example .env
-# Edit .env and add your GOOGLE_API_KEY
+# Edit .env and add your GOOGLE_API_KEY and GOOGLE_MAPS_API_KEY
 ```
+
+**Frontend environment variables:**
+```bash
+# Copy ui/.env.local.example to ui/.env.local
+cp ui/.env.local.example ui/.env.local
+# Edit ui/.env.local and add your NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+```
+
+> **Note:** The UI requires a Google Maps API key to display the interactive map. Get your API key from the [Google Cloud Console](https://console.cloud.google.com/google/maps-apis) and make sure to enable Maps JavaScript API, Places API, and Geocoding API.
 
 4. **Run the development servers**:
 

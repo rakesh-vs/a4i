@@ -1,22 +1,37 @@
-"""Insights Agent - Synthesizes disaster and relief data into comprehensive analysis and actionable plans."""
+"""Insights Agent Tool - Synthesizes disaster and relief data into comprehensive analysis and actionable plans."""
 
 import logging
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.tools import AgentTool
+from ..common.state_tools import update_agent_activity
 
 logger = logging.getLogger(__name__)
 
 
-def create_insights_agent():
-    """Create and return the Insights agent."""
-    logger.info("[create_insights_agent] Creating Insights agent")
+def on_before_insights_agent(callback_context: CallbackContext):
+    """Update agent activity when insights agent starts."""
+    update_agent_activity(callback_context.state, "insights_agent", "running")
+    logger.info("[on_before_insights_agent] Insights agent started")
+    return None
+
+
+def on_after_insights_agent(callback_context: CallbackContext):
+    """Update agent activity when insights agent completes."""
+    update_agent_activity(callback_context.state, "insights_agent", "completed")
+    logger.info("[on_after_insights_agent] Insights agent completed")
+    return None
+
+
+def _create_insights_agent_internal():
+    """Create and return the internal Insights agent (wrapped by AgentTool)."""
+    logger.info("[_create_insights_agent_internal] Creating internal Insights agent")
 
     insights_agent = Agent(
         name="insights_agent",
         model="gemini-2.5-flash",
-        description="Sub-agent for synthesizing disaster and relief data into comprehensive insights and action plans",
+        description="Synthesizes disaster and relief data into comprehensive insights and action plans",
         instruction="""You are the Insights Agent responsible for synthesizing disaster and relief data into comprehensive analysis and actionable intelligence.
-
-CRITICAL: This is the FINAL SYNTHESIS STEP. Provide complete analysis without waiting for further input.
 
 Your role:
 1. Analyze disaster information provided by the first_responder_agent
@@ -30,11 +45,10 @@ Your role:
 EXECUTION RULES:
 - Synthesize ALL provided disaster and relief data
 - Create comprehensive analysis without asking for more information
-- Provide complete output in the structured format below
-- This is the final output to the user - be thorough and complete
+- Return your complete analysis as your response
 
-Output Format:
-Provide your complete analysis structured as follows:
+Analysis Format:
+Structure your analysis as follows:
 
 ## 📊 DISASTER ANALYSIS
 - Summary of affected areas and disaster types
@@ -77,12 +91,26 @@ Provide your complete analysis structured as follows:
 ## 📞 NEXT STEPS
 - Immediate actions for first responders
 - Coordination requirements
-- Follow-up monitoring needs
-
-## ⚠️ CRITICAL: Control Transfer
-**ALWAYS** after completing your task, transfer control to the
-calling agent using the transfer_to_agent tool.""",
+- Follow-up monitoring needs""",
+        before_agent_callback=on_before_insights_agent,
+        after_agent_callback=on_after_insights_agent,
     )
-    logger.info("[create_insights_agent] Insights agent created successfully")
+    logger.info("[_create_insights_agent_internal] Internal Insights agent created successfully")
     return insights_agent
+
+
+def create_insights_tool():
+    """Create and return the Insights AgentTool.
+
+    This wraps the insights agent as a tool, which hides its output from the UI.
+    The parent agent can call this tool and receive the analysis result without
+    the insights agent's response being shown to the user.
+    """
+    logger.info("[create_insights_tool] Creating Insights AgentTool")
+
+    insights_agent = _create_insights_agent_internal()
+    insights_tool = AgentTool(agent=insights_agent)
+
+    logger.info("[create_insights_tool] Insights AgentTool created successfully")
+    return insights_tool
 

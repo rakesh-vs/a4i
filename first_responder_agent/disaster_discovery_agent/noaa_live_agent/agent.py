@@ -4,6 +4,7 @@ from typing import Optional
 import requests
 import logging
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +163,22 @@ def query_weather_by_location(latitude: float, longitude: float) -> dict:
         }
 
 
+def on_before_noaa_agent(callback_context: CallbackContext):
+    """Update agent activity when NOAA live agent starts."""
+    from ...common.state_tools import update_agent_activity
+    update_agent_activity(callback_context.state, "noaa_live_agent", "running")
+    logger.info("[on_before_noaa_agent] NOAA live agent started")
+    return None
+
+
+def on_after_noaa_agent(callback_context: CallbackContext):
+    """Update agent activity when NOAA live agent completes."""
+    from ...common.state_tools import update_agent_activity
+    update_agent_activity(callback_context.state, "noaa_live_agent", "completed")
+    logger.info("[on_after_noaa_agent] NOAA live agent completed")
+    return None
+
+
 def create_noaa_live_agent():
     """Create and return the NOAA Live agent."""
     logger.info("[create_noaa_live_agent] Creating NOAA Live agent with tools")
@@ -205,6 +222,8 @@ calling agent using the transfer_to_agent tool.""",
             query_severe_weather_outlook,
             query_weather_by_location,
         ],
+        before_agent_callback=on_before_noaa_agent,
+        after_agent_callback=on_after_noaa_agent,
     )
     logger.info("[create_noaa_live_agent] NOAA Live agent created successfully")
     return noaa_live_agent

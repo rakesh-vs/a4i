@@ -4,6 +4,7 @@ from typing import Optional
 import requests
 import logging
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -184,6 +185,22 @@ def query_disaster_summary(disaster_number: int) -> dict:
         }
 
 
+def on_before_fema_agent(callback_context: CallbackContext):
+    """Update agent activity when FEMA live agent starts."""
+    from ...common.state_tools import update_agent_activity
+    update_agent_activity(callback_context.state, "fema_live_agent", "running")
+    logger.info("[on_before_fema_agent] FEMA live agent started")
+    return None
+
+
+def on_after_fema_agent(callback_context: CallbackContext):
+    """Update agent activity when FEMA live agent completes."""
+    from ...common.state_tools import update_agent_activity
+    update_agent_activity(callback_context.state, "fema_live_agent", "completed")
+    logger.info("[on_after_fema_agent] FEMA live agent completed")
+    return None
+
+
 def create_fema_live_agent():
     """Create and return the FEMA Live agent."""
     logger.info("[create_fema_live_agent] Creating FEMA Live agent with tools")
@@ -227,6 +244,8 @@ calling agent using the transfer_to_agent tool.""",
             query_fema_assistance,
             query_disaster_summary,
         ],
+        before_agent_callback=on_before_fema_agent,
+        after_agent_callback=on_after_fema_agent,
     )
     logger.info("[create_fema_live_agent] FEMA Live agent created successfully")
 

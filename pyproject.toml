@@ -1,13 +1,17 @@
 [project]
 name = "a4i"
 version = "1.0.0"
-description = "Add your description here"
+description = "First Responder Agent - An intelligent multi-agent system for emergency response coordination and disaster management"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "google-adk>=1.16.0",
     "pydantic>=2.12.2",
     "python-dotenv>=1.1.1",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "ag-ui-adk>=0.3.1",
+    "googlemaps>=4.10.0",
 ]
 
 [tool.setuptools]

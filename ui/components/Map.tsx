@@ -27,6 +27,7 @@ const containerStyle = {
 export function Map({ locations, center }: MapProps) {
   const [selectedMarker, setSelectedMarker] = useState<LocationMarker | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
+  const hasFitBoundsRef = useRef(false);
 
   const getMarkerIcon = (placeType: string) => {
     const iconMap: Record<string, string> = {
@@ -43,12 +44,14 @@ export function Map({ locations, center }: MapProps) {
   };
 
   useEffect(() => {
-    if (mapRef.current && locations.length > 0) {
+    // Only fit bounds once when locations first appear, not on every update
+    if (mapRef.current && locations.length > 0 && !hasFitBoundsRef.current) {
       const bounds = new google.maps.LatLngBounds();
       locations.forEach(location => {
         bounds.extend({ lat: location.lat, lng: location.lng });
       });
       mapRef.current.fitBounds(bounds);
+      hasFitBoundsRef.current = true;
     }
   }, [locations]);
 
@@ -84,20 +87,20 @@ export function Map({ locations, center }: MapProps) {
             position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
             onCloseClick={() => setSelectedMarker(null)}
           >
-            <div style={{ maxWidth: '250px' }}>
-              <h3 style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '14px' }}>
+            <div style={{ maxWidth: '250px', color: '#000' }}>
+              <h3 style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '14px', color: '#000' }}>
                 {selectedMarker.name}
               </h3>
               <p style={{ margin: '4px 0', fontSize: '12px', color: '#666' }}>
                 {selectedMarker.address}
               </p>
               {selectedMarker.rating && selectedMarker.rating !== 'N/A' && (
-                <p style={{ margin: '4px 0', fontSize: '12px' }}>
+                <p style={{ margin: '4px 0', fontSize: '12px', color: '#000' }}>
                   ⭐ Rating: {selectedMarker.rating}
                 </p>
               )}
               {selectedMarker.is_open !== null && (
-                <p style={{ margin: '4px 0', fontSize: '12px', fontWeight: 'bold' }}>
+                <p style={{ margin: '4px 0', fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                   {selectedMarker.is_open ? '🟢 Open Now' : '🔴 Closed'}
                 </p>
               )}

@@ -36,8 +36,8 @@ export function MapPanel() {
       {/* Map Header Overlay */}
       <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-xl max-w-xs">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">🗺️</span>
+          <div className="w-10 h-10 rounded-full bg-blue-300 flex items-center justify-center shadow-md">
+            <span className="text-2xl">🗺️</span>
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">Emergency Map</h2>

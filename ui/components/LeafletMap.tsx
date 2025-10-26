@@ -132,10 +132,14 @@ export default function LeafletMap({
       markersRef.current.set(markerData.id, marker);
     });
 
-    // Fit bounds if markers exist
-    if (markers.length > 0) {
-      const group = new L.FeatureGroup(Array.from(markersRef.current.values()));
-      mapRef.current.fitBounds(group.getBounds().pad(0.1));
+    // Fit bounds only on initial load (when going from 0 to some markers)
+    // This prevents map shaking on updates
+    if (markers.length > 0 && markersRef.current.size === markers.length) {
+      const hasExistingMarkers = Array.from(markersRef.current.values()).length > 0;
+      if (!hasExistingMarkers) {
+        const group = new L.FeatureGroup(Array.from(markersRef.current.values()));
+        mapRef.current.fitBounds(group.getBounds().pad(0.1));
+      }
     }
   }, [markers, onMarkerClick]);
 

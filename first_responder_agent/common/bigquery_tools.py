@@ -1,11 +1,9 @@
-"""Common BigQuery Data Agent - Shared across multiple agents for various use cases."""
+"""BigQuery Tools - Functions for querying disaster and relief data from BigQuery."""
 
 import os
 import logging
 from typing import Optional
 from google.cloud import bigquery
-from google.adk.agents import Agent
-from google.adk.tools.agent_tool import AgentTool
 
 logger = logging.getLogger(__name__)
 
@@ -163,49 +161,4 @@ def check_supply_inventory(supply_id: str) -> dict:
     logger.info(f"[check_supply_inventory] Placeholder called for supply_id={supply_id}")
     # Placeholder implementation
     return {"status": "info", "message": "No supply inventory info, continue with other sources"}
-
-
-def create_big_query_data_agent_tool():
-    """Create and return the BigQuery Data agent wrapped as an AgentTool.
-
-    This function creates a BigQuery agent and wraps it as an AgentTool so it can be
-    called directly by other agents. The tool always returns control to the calling agent,
-    even when errors occur.
-
-    Returns:
-        AgentTool: The BigQuery agent wrapped as a tool
-    """
-    logger.info("[create_big_query_data_agent_tool] Creating BigQuery Data agent tool")
-
-    big_query_agent = Agent(
-        name="big_query_data_agent",
-        model="gemini-2.5-flash",
-        description="Query BigQuery for disaster and relief data including shelters and storms by location coordinates",
-        instruction="""You are a BigQuery Data Agent that queries disaster and relief data.
-
-WORKFLOW:
-1. Use the appropriate tool based on what data is requested with the provided lat and long coordinates:
-   - For storm data: Use the get_ongoing_storms_info tool
-   - For shelter data: Use the get_available_shelter_info tool
-   - For hospital data: Use the check_hospital_capacity tool
-   - For supply data: Use the check_supply_inventory tool
-
-2. If there is any error or no data is found, just return an empty list. Do not stop.
-
-DO NOT ask for clarification or additional input.
-""",
-        tools=[
-            get_available_shelter_info,
-            get_ongoing_storms_info,
-            check_hospital_capacity,
-            check_supply_inventory,
-        ],
-    )
-
-    # Wrap the agent as an AgentTool with skip_summarization=True
-    # This ensures the raw results are passed back without additional LLM processing
-    agent_tool = AgentTool(agent=big_query_agent, skip_summarization=True)
-
-    logger.info("[create_big_query_data_agent_tool] BigQuery Data agent tool created successfully")
-    return agent_tool
 

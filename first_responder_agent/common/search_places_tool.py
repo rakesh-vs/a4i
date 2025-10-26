@@ -45,15 +45,16 @@ def search_nearby_places(
         Dict with search results
     """
     try:
-        logger.info(f"[search_nearby_places] Searching for {place_type} near ({latitude}, {longitude})")
-        
+        logger.info(f"[search_nearby_places] 🔍 CALLED by agent - Searching for {place_type} near ({latitude}, {longitude})")
+
         gmaps = get_gmaps_client()
         if not gmaps:
+            logger.error(f"[search_nearby_places] ❌ Google Maps API key not configured for {place_type}")
             return {
                 "status": "error",
                 "message": "Google Maps API key not configured"
             }
-        
+
         # Map place types to Google Places API types
         type_mapping = {
             "hospital": "hospital",
@@ -66,16 +67,17 @@ def search_nearby_places(
             "food": "restaurant",
             "supplies": "store"
         }
-        
+
         search_type = type_mapping.get(place_type.lower(), "hospital")
-        
+        logger.info(f"[search_nearby_places] 🗺️  Mapped {place_type} -> {search_type} for Google Places API")
+
         # Search for nearby places
         places_result = gmaps.places_nearby(
             location={"lat": latitude, "lng": longitude},
             radius=radius,
             type=search_type
         )
-        
+
         locations = []
         for place in places_result.get('results', [])[:10]:  # Limit to 10 results
             location_data = {
@@ -89,22 +91,30 @@ def search_nearby_places(
                 "is_open": place.get('opening_hours', {}).get('open_now', None)
             }
             locations.append(location_data)
-        
-        # Update map state automatically
+
+        logger.info(f"[search_nearby_places] 📍 Found {len(locations)} {place_type} locations from Google Maps API")
+
+        # Update map state automatically - APPEND, don't overwrite
         if "locations" not in tool_context.state:
             tool_context.state["locations"] = []
-        
-        # Append new locations to existing ones
+            logger.info(f"[search_nearby_places] 🆕 Initialized locations array in state")
+
+        # Get current count before appending
+        before_count = len(tool_context.state["locations"])
+
+        # Append new locations to existing ones (NOT overwriting)
         existing_locations = tool_context.state["locations"]
         tool_context.state["locations"] = existing_locations + locations
-        
+
+        after_count = len(tool_context.state["locations"])
+
         # Update center
         tool_context.state["center"] = {
             "lat": latitude,
             "lng": longitude
         }
-        
-        logger.info(f"[search_nearby_places] Found {len(locations)} locations, updated map state")
+
+        logger.info(f"[search_nearby_places] ✅ MAP UPDATE for {place_type}: Added {len(locations)} locations (before: {before_count}, after: {after_count})")
         
         return {
             "status": "success",

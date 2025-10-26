@@ -3,7 +3,7 @@
 import logging
 from google.adk.agents import Agent
 from google.adk.agents.callback_context import CallbackContext
-from ..common.big_query_data_agent import create_big_query_data_agent_tool
+from ..common.bigquery_tools import get_ongoing_storms_info
 from ..common.state_tools import update_agent_activity
 from .fema_live_agent.agent import create_fema_live_agent
 from .noaa_live_agent.agent import create_noaa_live_agent
@@ -29,8 +29,7 @@ def create_disaster_discovery_agent():
     """Create and return the Disaster Discovery agent."""
     logger.info("[create_disaster_discovery_agent] Creating Disaster Discovery agent")
 
-    # Create BigQuery tool and sub-agents
-    bq_tool = create_big_query_data_agent_tool()
+    # Create sub-agents
     fema_live_agent = create_fema_live_agent()
     noaa_live_agent = create_noaa_live_agent()
 
@@ -44,35 +43,38 @@ You will receive coordinates (latitude, longitude) from the first_responder_agen
 
 WORKFLOW - EXECUTE ALL 5 STEPS SEQUENTIALLY, NO EXCEPTIONS:
 Step 1:
-Use the big_query_data_agent TOOL with the coordinates to query ongoing storm data.
-⚠️ CRITICAL: If this returns NO results or an error, IGNORE IT and IMMEDIATELY proceed to Step 2.
+Use the get_ongoing_storms_info TOOL with the coordinates to query ongoing storm data from BigQuery.
+⚠️ CRITICAL: After receiving the result, IMMEDIATELY proceed to Step 2. DO NOT STOP.
 
 Step 2:
 Handoff to fema_live_agent sub-agent with the coordinates to query FEMA disaster data.
-⚠️ CRITICAL: If this returns NO results or an error, IGNORE IT and IMMEDIATELY proceed to Step 3.
+⚠️ CRITICAL: After receiving the result, IMMEDIATELY proceed to Step 3. DO NOT STOP.
 
 Step 3:
 Handoff to noaa_live_agent sub-agent with the coordinates to query NOAA weather alerts.
-⚠️ CRITICAL: If this returns NO results or an error, IGNORE IT and IMMEDIATELY proceed to Step 4.
+⚠️ CRITICAL: After receiving the result, IMMEDIATELY proceed to Step 4. DO NOT STOP.
 
 Step 4:
 Synthesize ALL disaster data collected from Steps 1-3 into a comprehensive report.
 Even if some steps returned no data, create a report with what you have.
+After synthesizing, IMMEDIATELY proceed to Step 5. DO NOT STOP.
 
 Step 5:
 Return the synthesized disaster information and transfer control back to the calling agent using the transfer_to_agent tool.
 
 EXECUTION RULES:
-- Do all 5 steps regardless of their result, do not stop at any point.
-- ⚠️ CRITICAL: DO NOT STOP IF ANY TOOL RETURNS AN ERROR - CONTINUE TO THE NEXT STEP.
-- Never ask for clarification and never wait for user input.
+- Execute all 5 steps in sequence without stopping between steps
+- DO NOT STOP after receiving any tool or agent result - continue to the next step
+- DO NOT wait for user input between steps
+- If any step returns an error or no data, acknowledge it and continue to the next step
+- Never ask for clarification
 
 ## ⚠️ CRITICAL: Control Transfer
-**ALWAYS** after completing your task, transfer control to the
+**ALWAYS** after completing Step 5, transfer control to the
 calling agent using the transfer_to_agent tool.
 Never stop to ask for clarification or additional input.
 """,
-        tools=[bq_tool],
+        tools=[get_ongoing_storms_info],
         sub_agents=[fema_live_agent, noaa_live_agent],
         before_agent_callback=on_before_disaster_agent,
         after_agent_callback=on_after_disaster_agent,

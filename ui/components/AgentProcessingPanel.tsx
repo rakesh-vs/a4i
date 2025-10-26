@@ -1,6 +1,7 @@
 "use client";
 
 import { useCoAgent, useCopilotChat } from "@copilotkit/react-core";
+import { useEffect } from "react";
 
 // Map agent names to user-friendly info
 const AGENT_INFO: Record<string, { name: string; icon: string; description: string; color: string }> = {
@@ -90,6 +91,16 @@ export function AgentProcessingPanel() {
     },
   });
 
+  // Log state updates for debugging
+  useEffect(() => {
+    console.log("[AgentProcessingPanel] State updated:", {
+      currentAgent: state.currentAgent,
+      activityHistoryLength: state.activityHistory?.length || 0,
+      activityHistory: state.activityHistory,
+      isLoading,
+    });
+  }, [state.currentAgent, state.activityHistory, isLoading]);
+
   const displayCurrentAgent = state.currentAgent;
   const displayActivityHistory = state.activityHistory || [];
 
@@ -107,7 +118,8 @@ export function AgentProcessingPanel() {
   };
 
   const activeAgentInfo = displayCurrentAgent ? AGENT_INFO[displayCurrentAgent] : null;
-  const recentActivities = displayActivityHistory.slice(-5).reverse();
+  // Show all activities in reverse chronological order (most recent first)
+  const recentActivities = [...displayActivityHistory].reverse();
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
@@ -150,18 +162,23 @@ export function AgentProcessingPanel() {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : isLoading ? (
               <div className="p-5 rounded-xl border-2 bg-blue-50 border-blue-200 shadow-lg">
-                <div className="flex items-center gap-4">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                    <span className="text-base font-semibold text-gray-800">Agents Working...</span>
                   </div>
-                  <span className="text-base font-semibold text-gray-800">Processing your request...</span>
+                  <div className="text-xs text-gray-600 pl-8">
+                    Coordinating disaster discovery, relief resources, and analysis
+                  </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         ) : (
           <div className="p-5 rounded-xl bg-gray-100 border-2 border-gray-200">
@@ -177,7 +194,7 @@ export function AgentProcessingPanel() {
       </div>
 
       {/* Activity History */}
-      {recentActivities.length > 0 && (
+      {recentActivities.length > 0 ? (
         <div className="px-6 py-4 flex-1 overflow-y-auto">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Recent Activity</h3>
           <div className="space-y-2">
@@ -217,7 +234,14 @@ export function AgentProcessingPanel() {
             })}
           </div>
         </div>
-      )}
+      ) : isLoading ? (
+        <div className="px-6 py-4 flex-1 flex items-center justify-center">
+          <div className="text-center text-sm text-gray-500">
+            <div className="mb-2">⏳</div>
+            <p>Activity history will appear here as agents complete their tasks</p>
+          </div>
+        </div>
+      ) : null}
 
       {/* Info Footer */}
       <div className="px-6 py-4 border-t border-gray-200 bg-white">

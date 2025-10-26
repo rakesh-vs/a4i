@@ -3,6 +3,7 @@
 import logging
 from typing import List, Dict, Any, Optional
 from google.adk.tools import ToolContext
+from google.adk.agents.callback_context import CallbackContext
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,10 @@ def update_agent_activity(
 
         # Keep all activities (no limit)
         state["activityHistory"] = history
+
+        # Force state update by creating a new dict reference
+        # This ensures the AG-UI ADK detects the change
+        state["_update_trigger"] = timestamp
 
     except Exception as e:
         logger.error(f"[update_agent_activity] Error: {str(e)}")

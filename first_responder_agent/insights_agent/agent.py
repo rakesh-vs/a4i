@@ -2,8 +2,24 @@
 
 import logging
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
+from ..common.state_tools import update_agent_activity
 
 logger = logging.getLogger(__name__)
+
+
+def on_before_insights_agent(callback_context: CallbackContext):
+    """Update agent activity when insights agent starts."""
+    update_agent_activity(callback_context.state, "insights_agent", "running")
+    logger.info("[on_before_insights_agent] Insights agent started")
+    return None
+
+
+def on_after_insights_agent(callback_context: CallbackContext):
+    """Update agent activity when insights agent completes."""
+    update_agent_activity(callback_context.state, "insights_agent", "completed")
+    logger.info("[on_after_insights_agent] Insights agent completed")
+    return None
 
 
 def create_insights_agent():
@@ -82,6 +98,8 @@ Provide your complete analysis structured as follows:
 ## ⚠️ CRITICAL: Control Transfer
 **ALWAYS** after completing your task, transfer control to the
 calling agent using the transfer_to_agent tool.""",
+        before_agent_callback=on_before_insights_agent,
+        after_agent_callback=on_after_insights_agent,
     )
     logger.info("[create_insights_agent] Insights agent created successfully")
     return insights_agent

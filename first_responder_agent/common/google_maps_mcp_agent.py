@@ -2,11 +2,37 @@
 
 import logging
 import os
+from typing import Optional
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
+from google.adk.models import LlmResponse
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams, StdioServerParameters
 
 logger = logging.getLogger(__name__)
+
+
+def on_after_maps_agent(callback_context: CallbackContext, llm_response: Optional[LlmResponse]):
+    """Update map state after Google Maps agent execution."""
+    try:
+        # Parse the response to extract location data
+        if llm_response and llm_response.content and llm_response.content.parts:
+            response_text = ""
+            for part in llm_response.content.parts:
+                if hasattr(part, 'text') and part.text:
+                    response_text += part.text
+
+            # Try to extract location data from the response
+            # The MCP tool returns structured data that we can parse
+            logger.info(f"[on_after_maps_agent] Response: {response_text[:200]}...")
+
+            # TODO: Parse the MCP response and update state
+            # For now, we'll rely on the agents to manually update state
+
+    except Exception as e:
+        logger.error(f"[on_after_maps_agent] Error: {str(e)}")
+
+    return None
 
 
 def create_google_maps_mcp_agent_tool():
@@ -72,6 +98,7 @@ RESPONSE FORMAT:
 
 Your task is complete once you return the search results.""",
         tools=[mcp_toolset],
+        after_agent_callback=on_after_maps_agent,
     )
 
     # Wrap the agent as an AgentTool with skip_summarization=True

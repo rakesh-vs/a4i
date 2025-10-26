@@ -2,11 +2,27 @@
 
 import logging
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
 from ..common.big_query_data_agent import create_big_query_data_agent_tool
+from ..common.state_tools import update_agent_activity
 from .fema_live_agent.agent import create_fema_live_agent
 from .noaa_live_agent.agent import create_noaa_live_agent
 
 logger = logging.getLogger(__name__)
+
+
+def on_before_disaster_agent(callback_context: CallbackContext):
+    """Update agent activity when disaster discovery starts."""
+    update_agent_activity(callback_context.state, "disaster_discovery_agent", "running")
+    logger.info("[on_before_disaster_agent] Disaster discovery agent started")
+    return None
+
+
+def on_after_disaster_agent(callback_context: CallbackContext):
+    """Update agent activity when disaster discovery completes."""
+    update_agent_activity(callback_context.state, "disaster_discovery_agent", "completed")
+    logger.info("[on_after_disaster_agent] Disaster discovery agent completed")
+    return None
 
 
 def create_disaster_discovery_agent():
@@ -58,6 +74,8 @@ Never stop to ask for clarification or additional input.
 """,
         tools=[bq_tool],
         sub_agents=[fema_live_agent, noaa_live_agent],
+        before_agent_callback=on_before_disaster_agent,
+        after_agent_callback=on_after_disaster_agent,
     )
     logger.info("[create_disaster_discovery_agent] Disaster Discovery agent created successfully")
     return disaster_discovery

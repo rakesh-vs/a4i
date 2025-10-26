@@ -1,11 +1,16 @@
 "use client";
 
-import { useCopilotChat } from "@copilotkit/react-core";
-import { useState, useEffect } from "react";
+import { useCoAgent, useCopilotChat } from "@copilotkit/react-core";
 
 // Map agent names to user-friendly info
 const AGENT_INFO: Record<string, { name: string; icon: string; description: string; color: string }> = {
   "first_responder": {
+    name: "First Responder",
+    icon: "🚨",
+    description: "Coordinating emergency response",
+    color: "blue"
+  },
+  "first_responder_agent": {
     name: "First Responder",
     icon: "🚨",
     description: "Coordinating emergency response",
@@ -67,39 +72,26 @@ interface AgentActivity {
   status: "running" | "completed";
 }
 
+// Agent state type for useCoAgent
+type AgentActivityState = {
+  currentAgent: string | null;
+  activityHistory: AgentActivity[];
+}
+
 export function AgentProcessingPanel() {
-  const [currentAgent, setCurrentAgent] = useState<string | null>(null);
-  const [activityHistory, setActivityHistory] = useState<AgentActivity[]>([]);
-  const { visibleMessages, isLoading } = useCopilotChat();
+  const { isLoading } = useCopilotChat();
 
-  // Track agent activity
-  useEffect(() => {
-    if (!visibleMessages || visibleMessages.length === 0) return;
+  // Shared state with agent - updated automatically via callbacks
+  const { state } = useCoAgent<AgentActivityState>({
+    name: "first_responder_agent",
+    initialState: {
+      currentAgent: null,
+      activityHistory: [],
+    },
+  });
 
-    const lastMessage = visibleMessages[visibleMessages.length - 1] as any;
-
-    if (lastMessage.type === "AgentStateMessage") {
-      const nodeName = lastMessage.nodeName;
-      const running = lastMessage.running;
-
-      if (running && nodeName) {
-        setCurrentAgent(nodeName);
-        setActivityHistory(prev => [
-          ...prev.filter(a => a.agent !== nodeName),
-          { agent: nodeName, timestamp: Date.now(), status: "running" }
-        ]);
-      } else if (!running && nodeName) {
-        setActivityHistory(prev =>
-          prev.map(a =>
-            a.agent === nodeName ? { ...a, status: "completed" as const } : a
-          )
-        );
-        setTimeout(() => {
-          setCurrentAgent(null);
-        }, 500);
-      }
-    }
-  }, [visibleMessages]);
+  const displayCurrentAgent = state.currentAgent;
+  const displayActivityHistory = state.activityHistory || [];
 
   const getColorClasses = (color: string, variant: "bg" | "border" | "text") => {
     const colors: Record<string, Record<string, string>> = {
@@ -114,8 +106,8 @@ export function AgentProcessingPanel() {
     return colors[color]?.[variant] || colors.blue[variant];
   };
 
-  const activeAgentInfo = currentAgent ? AGENT_INFO[currentAgent] : null;
-  const recentActivities = activityHistory.slice(-5).reverse();
+  const activeAgentInfo = displayCurrentAgent ? AGENT_INFO[displayCurrentAgent] : null;
+  const recentActivities = displayActivityHistory.slice(-5).reverse();
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
@@ -125,54 +117,60 @@ export function AgentProcessingPanel() {
         <p className="text-sm text-gray-500 mt-1">Real-time processing status</p>
       </div>
 
-      {/* Current Activity */}
+      {/* Current Activity - Prominent Status Box */}
       <div className="px-6 py-4 space-y-4">
-        {isLoading || currentAgent ? (
+        {isLoading || displayCurrentAgent ? (
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-gray-700">Currently Processing</span>
+            {/* Status Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-semibold text-gray-900">ACTIVE</span>
+              </div>
+              <span className="text-xs text-gray-500">Processing now</span>
             </div>
-            
-            {activeAgentInfo && (
-              <div className={`p-4 rounded-lg border-2 ${getColorClasses(activeAgentInfo.color, "bg")} ${getColorClasses(activeAgentInfo.color, "border")}`}>
-                <div className="flex items-start gap-3">
-                  <div className="text-3xl">{activeAgentInfo.icon}</div>
+
+            {/* Active Agent Card */}
+            {activeAgentInfo ? (
+              <div className={`p-5 rounded-xl border-2 shadow-lg ${getColorClasses(activeAgentInfo.color, "bg")} ${getColorClasses(activeAgentInfo.color, "border")}`}>
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl animate-pulse">{activeAgentInfo.icon}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-semibold ${getColorClasses(activeAgentInfo.color, "text")}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className={`text-lg font-bold ${getColorClasses(activeAgentInfo.color, "text")}`}>
                         {activeAgentInfo.name}
                       </h3>
                       <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <div className="w-2 h-2 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600">{activeAgentInfo.description}</p>
+                    <p className="text-sm font-medium text-gray-700">{activeAgentInfo.description}</p>
                   </div>
                 </div>
               </div>
-            )}
-
-            {!activeAgentInfo && (
-              <div className="p-4 rounded-lg border-2 bg-blue-50 border-blue-200">
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            ) : (
+              <div className="p-5 rounded-xl border-2 bg-blue-50 border-blue-200 shadow-lg">
+                <div className="flex items-center gap-4">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
-                  <span className="text-sm font-medium text-gray-700">Processing your request...</span>
+                  <span className="text-base font-semibold text-gray-800">Processing your request...</span>
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <div className="p-4 rounded-lg bg-gray-100 border border-gray-200">
-            <div className="flex items-center gap-2 text-gray-500">
-              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-              <span className="text-sm">Idle - Waiting for request</span>
+          <div className="p-5 rounded-xl bg-gray-100 border-2 border-gray-200">
+            <div className="flex items-center gap-3 text-gray-500">
+              <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+              <div>
+                <div className="text-sm font-semibold text-gray-700">Idle</div>
+                <div className="text-xs text-gray-500">Waiting for request</div>
+              </div>
             </div>
           </div>
         )}
@@ -183,7 +181,7 @@ export function AgentProcessingPanel() {
         <div className="px-6 py-4 flex-1 overflow-y-auto">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Recent Activity</h3>
           <div className="space-y-2">
-            {recentActivities.map((activity, idx) => {
+            {recentActivities.map((activity) => {
               const info = AGENT_INFO[activity.agent];
               if (!info) return null;
 

@@ -2,11 +2,27 @@
 
 import logging
 from google.adk.agents import Agent
+from google.adk.agents.callback_context import CallbackContext
+from ..common.state_tools import update_agent_activity
 from .shelter_finder_agent import create_shelter_finder_agent
 from .hospital_finder_agent import create_hospital_finder_agent
 from .supply_finder_agent import create_supply_finder_agent
 
 logger = logging.getLogger(__name__)
+
+
+def on_before_relief_agent(callback_context: CallbackContext):
+    """Update agent activity when relief finder starts."""
+    update_agent_activity(callback_context.state, "relief_finder_agent", "running")
+    logger.info("[on_before_relief_agent] Relief finder agent started")
+    return None
+
+
+def on_after_relief_agent(callback_context: CallbackContext):
+    """Update agent activity when relief finder completes."""
+    update_agent_activity(callback_context.state, "relief_finder_agent", "completed")
+    logger.info("[on_after_relief_agent] Relief finder agent completed")
+    return None
 
 
 def create_relief_finder_agent():
@@ -60,6 +76,8 @@ Your role:
 **ALWAYS** after completing your task, transfer control to the
 calling agent using the transfer_to_agent tool.""",
         sub_agents=[shelter_finder, hospital_finder, supply_finder],
+        before_agent_callback=on_before_relief_agent,
+        after_agent_callback=on_after_relief_agent,
     )
     logger.info("[create_relief_finder_agent] Relief Finder agent created successfully")
     return relief_finder

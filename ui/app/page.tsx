@@ -35,16 +35,14 @@ export default function Home() {
         </div>
 
         {/* Center Column - Chat */}
-        <div style={{ flex: "2" }} className="flex flex-col bg-white overflow-hidden border-r border-gray-200">
-          <div className="w-full h-full flex flex-col overflow-hidden">
-            <CopilotChat
-              instructions="You are the First Responder Agent, an AI assistant specialized in emergency response coordination. You help users with disaster discovery, finding relief resources, and providing intelligent insights for emergency situations. Be helpful, clear, and provide actionable information."
-              labels={{
-                initial: "👋 Welcome to First Responder Agent\n\nI'm your AI emergency response assistant. I can help you with:\n\n🌪️ **Disaster Discovery**\n• Track active disasters and emergencies\n• Get real-time updates from FEMA and NOAA\n\n🏥 **Relief Resources**\n• Find emergency shelters\n• Locate medical facilities\n• Discover relief organizations\n\n📊 **Intelligent Insights**\n• Analyze emergency situations\n• Get AI-powered recommendations\n• Coordinate response efforts\n\nWhat would you like to know?",
-                placeholder: "Ask about disasters, relief resources, or emergency response...",
-              }}
-            />
-          </div>
+        <div style={{ flex: "2" }} className="h-full border-r border-gray-200">
+          <CopilotChat
+            className="h-full"
+            labels={{
+              initial: "👋 **Welcome to First Responder Agent**\n\nI'm your AI emergency response assistant. I can help you with:\n\n🌪️ **Disaster Discovery**\n• Track active disasters and emergencies\n• Get real-time updates from FEMA and NOAA\n\n🏥 **Relief Resources**\n• Find emergency shelters\n• Locate medical facilities\n• Discover relief organizations\n\n📊 **Intelligent Insights**\n• Analyze emergency situations\n• Get AI-powered recommendations\n• Coordinate response efforts\n\nWhat would you like to know?",
+              placeholder: "Ask about disasters, relief resources, or emergency response...",
+            }}
+          />
         </div>
 
         {/* Right Column - Agent Processing Panel (Half width of chat) */}

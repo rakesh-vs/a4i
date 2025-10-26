@@ -1,7 +1,7 @@
 [project]
 name = "a4i"
 version = "1.0.0"
-description = "Add your description here"
+description = "First Responder Agent - An intelligent multi-agent system for emergency response coordination and disaster management"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

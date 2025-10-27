@@ -10,7 +10,7 @@ import { NextRequest } from "next/server";
 const serviceAdapter = new ExperimentalEmptyAdapter();
 
 // Get backend URL from environment variable
-// In production (Cloud Run), this will be the internal nginx proxy
+// In production (Cloud Run), use /agent/ path which nginx routes to FastAPI
 // In development, this will be localhost:8000
 const backendUrl = process.env.AGENT_BACKEND_URL || "http://localhost:8000/";
 

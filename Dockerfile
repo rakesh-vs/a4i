@@ -66,23 +66,9 @@ server {
     listen 8080;
     server_name _;
 
-    # Next.js UI (main app)
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-
-    # FastAPI backend (for CopilotKit API route)
-    location /api/agent/ {
-        rewrite ^/api/agent/(.*) /\$1 break;
-        proxy_pass http://localhost:8000;
+    # FastAPI backend direct access
+    location /agent/ {
+        proxy_pass http://localhost:8000/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -97,6 +83,19 @@ server {
     location /health {
         proxy_pass http://localhost:8000/health;
     }
+
+    # Next.js UI (handles /api/copilotkit and all other routes)
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
 }
 EOF
 
@@ -108,16 +107,29 @@ set -e
 # Start nginx in background
 echo "Starting nginx..."
 /usr/sbin/nginx -g "daemon off;" &
+NGINX_PID=$!
 
 # Start FastAPI in background
+cd /app/agent
 echo "Starting FastAPI backend..."
-cd /app
-PORT=8000 python agent/main.py &
+PORT=8000 PYTHONUNBUFFERED=1 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --log-level info &
+FASTAPI_PID=$!
 
-# Start Next.js (foreground - this keeps the container running)
+# Wait for FastAPI to be ready (agent creation takes time)
+for i in {1..60}; do
+  sleep 1
+  if ! kill -0 $FASTAPI_PID 2>/dev/null; then
+    exit 1
+  fi
+  if netstat -tuln 2>/dev/null | grep -q ":8000 "; then
+    break
+  fi
+done
+
+# Start Next.js (foreground)
 echo "Starting Next.js UI..."
 cd /app/ui
-PORT=3000 npm start
+PORT=3000 AGENT_BACKEND_URL=http://localhost:8080/agent/ npm start
 EOF
 
 RUN chmod +x /app/start.sh

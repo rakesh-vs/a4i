@@ -17,42 +17,12 @@ from first_responder_agent.agent import root_agent
 # Load environment variables
 load_dotenv()
 
-# Configure logging to show ALL logs (DEBUG level) and write to file
-log_file = Path(__file__).parent.parent / "agent_run.log"
-
-# Remove old log file if it exists
-if log_file.exists():
-    log_file.unlink()
-
-# Create file handler with immediate flushing
-file_handler = logging.FileHandler(log_file, mode='w')
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-))
-
-# Create console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-console_handler.setFormatter(logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-))
-
-# Configure root logger
+# Configure logging
 logging.basicConfig(
-    level=logging.DEBUG,
-    handlers=[file_handler, console_handler],
-    force=True  # Force reconfiguration even if already configured
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
-
-# Set specific loggers to DEBUG level to see everything
-logging.getLogger('first_responder_agent').setLevel(logging.DEBUG)
-logging.getLogger('uvicorn.access').setLevel(logging.WARNING)  # Reduce uvicorn noise
-
-print(f"📝 Logging to: {log_file}")
-logging.info(f"Logging initialized - writing to {log_file}")
 
 # Create ADK Agent wrapper for AG-UI protocol
 adk_first_responder = ADKAgent(
@@ -90,11 +60,13 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
     print(f"🚀 Starting First Responder Agent API on port {port}")
 
+    # Check if running in production (Cloud Run sets K_SERVICE env var)
+    is_production = os.getenv("K_SERVICE") is not None
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=True,
+        reload=not is_production,  # Only reload in development
         log_level="info"
     )
-

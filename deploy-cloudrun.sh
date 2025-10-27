@@ -73,8 +73,8 @@ fi
 
 # Step 1: Build the Docker image
 echo ""
-echo -e "${GREEN}Step 1: Building Docker image...${NC}"
-docker build -t ${IMAGE_NAME}:latest .
+echo -e "${GREEN}Step 1: Building Docker image for linux/amd64 platform...${NC}"
+docker build --platform linux/amd64 -t ${IMAGE_NAME}:latest .
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}✗${NC} Docker build failed!"

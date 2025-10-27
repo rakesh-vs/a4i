@@ -57,16 +57,14 @@ if __name__ == "__main__":
         print("   Get a key from: https://makersuite.google.com/app/apikey")
         print()
 
-    port = int(os.getenv("PORT", "8000"))
+    # Backend always runs on port 8000 (frontend runs on PORT env var which is 3000 in Cloud Run)
+    port = 8000
     print(f"🚀 Starting First Responder Agent API on port {port}")
-
-    # Check if running in production (Cloud Run sets K_SERVICE env var)
-    is_production = os.getenv("K_SERVICE") is not None
 
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=not is_production,  # Only reload in development
+        reload=False,  # Disable reload for faster startup
         log_level="info"
     )

@@ -22,6 +22,9 @@ FROM python:3.12-slim AS backend-builder
 
 WORKDIR /agent
 
+# Set Python to unbuffered mode
+ENV PYTHONUNBUFFERED=1
+
 # Install uv
 RUN pip install uv
 
@@ -37,8 +40,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install Node.js runtime for frontend
-RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists/*
+# Set Python to unbuffered mode globally
+ENV PYTHONUNBUFFERED=1
+
+# Install Node.js runtime for frontend, curl for health checks, and procps for process management
+RUN apt-get update && apt-get install -y nodejs npm curl procps && rm -rf /var/lib/apt/lists/*
 
 # Copy backend code first
 COPY agent/ /agent/
@@ -83,7 +89,19 @@ cd /agent
 # Activate virtual environment and start backend
 if [ -f /agent/.venv/bin/activate ]; then
   source /agent/.venv/bin/activate
-  python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
+
+  # Test if we can import the app
+  echo "   Testing if main.py can be imported..."
+  python -c "import sys; sys.path.insert(0, '/agent'); from main import app; print('✅ App imported successfully')" 2>&1
+
+  if [ $? -ne 0 ]; then
+    echo "❌ Failed to import app! Backend will not start."
+    exit 1
+  fi
+
+  echo "   Starting backend with python main.py..."
+  # Run main.py directly which will start uvicorn, redirect all output to stdout/stderr
+  python main.py 2>&1 &
 else
   echo "⚠️  Virtual environment not found at /agent/.venv"
   exit 1
@@ -95,6 +113,26 @@ echo "   Backend PID: $BACKEND_PID"
 # Wait for backend to be ready
 echo "⏳ Waiting for backend to be ready..."
 sleep 5
+
+# Check if backend is responding
+echo "🔍 Testing backend health..."
+for i in {1..10}; do
+  if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+    echo "✅ Backend is responding!"
+    break
+  fi
+  if [ $i -eq 10 ]; then
+    echo "⚠️  Backend health check failed after 10 attempts"
+    echo "   Checking if process is still running..."
+    if ps -p $BACKEND_PID > /dev/null; then
+      echo "   Process is running but not responding"
+    else
+      echo "   Process has died!"
+      exit 1
+    fi
+  fi
+  sleep 1
+done
 
 # Start frontend
 echo "🚀 Starting frontend..."

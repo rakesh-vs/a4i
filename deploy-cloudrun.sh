@@ -47,7 +47,7 @@ echo -e "${GREEN}✓${NC} All required environment variables found"
 # Configuration
 SERVICE_NAME="first-responder-agent"
 IMAGE_NAME="gcr.io/${GCP_PROJECT}/${SERVICE_NAME}"
-MEMORY="2Gi"
+MEMORY="4Gi"
 CPU="2"
 MAX_INSTANCES="8"
 MIN_INSTANCES="0"

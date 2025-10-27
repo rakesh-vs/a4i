@@ -108,7 +108,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --max-instances ${MAX_INSTANCES} \
     --min-instances ${MIN_INSTANCES} \
     --set-env-vars "GOOGLE_API_KEY=${GOOGLE_API_KEY},GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY},GCP_PROJECT=${GCP_PROJECT},GCP_REGION=${GCP_REGION},AGENT_BACKEND_URL=http://localhost:8000/,NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}" \
-    --port 8080
+    --port 3000
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}✗${NC} Cloud Run deployment failed!"

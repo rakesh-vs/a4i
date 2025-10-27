@@ -5,17 +5,22 @@ description = "First Responder Agent - An intelligent multi-agent system for eme
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "ag-ui-adk>=0.3.1",
     "google-adk>=1.16.0",
     "pydantic>=2.12.2",
     "python-dotenv>=1.1.1",
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
-    "ag-ui-adk>=0.3.1",
     "googlemaps>=4.10.0",
 ]
 
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools]
 packages = [
+    "agent",
     "first_responder_agent",
     "first_responder_agent.common",
     "first_responder_agent.disaster_discovery_agent",

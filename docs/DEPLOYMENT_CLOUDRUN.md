@@ -120,10 +120,10 @@ The Docker container includes:
 ### Deployment Configuration
 
 Default settings (can be modified in `deploy-cloudrun.sh`):
-- **Memory**: 2Gi
+- **Memory**: 4Gi
 - **CPU**: 2 vCPUs
 - **Timeout**: 300 seconds
-- **Max Instances**: 10
+- **Max Instances**: 8
 - **Min Instances**: 0 (scales to zero when idle)
 - **Authentication**: Public (unauthenticated access)
 
